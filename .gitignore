@@ -1,0 +1,16 @@
+# Internal planning — do not publish
+AGENTS.md
+TASKS.md
+
+# Environment & secrets (keep js/config.js in repo but never put real API keys here)
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dev tooling
+node_modules/
+*.local
+dist/
+.cache/

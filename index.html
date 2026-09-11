@@ -1,0 +1,258 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#060611">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Track MRP">
+<title>Track MRP</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/logo.png">
+<link rel="apple-touch-icon" href="icons/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<meta name="description" content="Track MRP — Private investment portfolio &amp; life dashboard. Live prices, closed trades, S&amp;P 500 benchmark, gym log, books, movies and series. Serverless, local-first, yours.">
+<meta name="color-scheme" content="dark light">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Track MRP — Private Portfolio">
+<meta property="og:description" content="Private investment portfolio &amp; life dashboard. Live prices, benchmarks, gym log and media tracking — serverless and local-first.">
+<meta property="og:image" content="icons/logo.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Track MRP — Private Portfolio">
+<meta name="twitter:description" content="Private investment portfolio &amp; life dashboard. Serverless, local-first, yours.">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700;800&display=swap"></noscript>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#tabBar">Skip to content</a>
+<noscript><div style="padding:20px;text-align:center;font-family:monospace;color:#ff4466">Track MRP requires JavaScript to render your portfolio.</div></noscript>
+<div class="bg-mesh"></div><div class="scanline"></div>
+<div class="wrap">
+<header>
+<div class="brand"><img src="icons/logo.png" class="logo-small" alt="Track MRP logo" width="36" height="36"><div><h1>Track MRP</h1><small>Private Portfolio</small></div></div>
+<div class="hdr-r"><div class="live-dot" id="dot"></div><span class="ts" id="ts">Loading...</span>
+<span class="sync-status" id="syncStatus" style="color:var(--text-muted)">Local</span>
+<button class="btn" id="btnTheme" title="Toggle theme" aria-label="Toggle light/dark theme">&#x263D;</button>
+<button class="btn" id="btnRefresh" title="Refresh prices" aria-label="Refresh prices">&#x21bb;</button>
+<button class="btn" id="btnExport" style="display:none" title="Download JSON backup" aria-label="Download JSON backup">&#x2913;</button>
+<button class="btn" id="btnImport" style="display:none" title="Import JSON backup" aria-label="Import JSON backup">&#x2912;</button>
+<button class="btn" id="btnAdmin" style="display:none" title="Toggle edit mode" aria-label="Toggle edit mode">&#x270F; Edit</button></div>
+</header>
+<main role="main">
+<div class="tab-bar" id="tabBar" aria-label="Dashboard sections">
+<button class="tab-btn active" data-tab="portfolio">Portfolio</button>
+<button class="tab-btn" data-tab="watchlist">Watchlist</button>
+<button class="tab-btn" data-tab="trades">Closed Trades</button>
+<button class="tab-btn" data-tab="analytics">Analytics</button>
+<button class="tab-btn" data-tab="gym">Gym</button>
+<button class="tab-btn" data-tab="books">Books</button>
+<button class="tab-btn" data-tab="movies">Movies</button>
+<button class="tab-btn" data-tab="series">Series</button>
+<button class="tab-btn" data-tab="games">Games</button>
+</div>
+
+<div class="tab-content" id="tab-games">
+<div class="sum-grid" id="gamesSummary"></div>
+<div class="filter-bar">
+<input id="gamesSearch" type="search" placeholder="Search title, developer, platform..." aria-label="Search games">
+<select id="gamesSort" aria-label="Sort games"><option value="default">Original order</option><option value="myRating">My rating (high)</option><option value="metacritic">Metacritic (high)</option><option value="playedYear">Played (newest)</option><option value="releaseYear">Release (newest)</option><option value="hours">Hours (most)</option><option value="title">Title A-Z</option></select>
+<select id="gamesFilter" aria-label="Game status"><option value="all">All</option><option>Playing</option><option>Completed</option><option>Paused</option><option>Dropped</option><option>Backlog</option></select>
+<button class="btn btn-sm btn-g add-section" id="btnAddGame">+ Add</button></div>
+<div class="media-grid" id="gamesGrid"></div></div>
+<div class="tab-content active" id="tab-portfolio">
+<div class="hero"><div class="hero-lbl">Portfolio Value</div><div class="hero-val" id="hVal">---,-- &euro;</div><div id="hRoi"></div></div>
+<div id="portfolioEditWrap" class="add-section" style="justify-content:flex-end;margin-bottom:16px;gap:8px"><button class="btn btn-sm btn-g" id="btnAddHolding">+ Add Position</button></div>
+<div class="sg" id="sGrid"></div>
+<div class="cg"><div class="card"><h2>Allocation</h2><div class="ch ch-s"><canvas id="cD"></canvas></div></div><div class="card"><h2>Value Breakdown (EUR)</h2><div class="ch ch-s"><canvas id="cB"></canvas></div></div></div>
+<!-- NEW: Historical chart + Monthly returns -->
+<div class="cg"><div class="card" style="grid-column:1/-1">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+  <h2 style="margin:0">Invested vs Portfolio Value</h2>
+  <div id="historyBtns" class="bench-grp">
+    <button class="bench-btn active" data-period="all">ALL</button>
+    <button class="bench-btn" data-period="1y">1Y</button>
+    <button class="bench-btn" data-period="6m">6M</button>
+    <button class="bench-btn" data-period="3m">3M</button>
+    <button class="bench-btn" data-period="1m">1M</button>
+  </div>
+</div>
+<div class="ch ch-l"><canvas id="cHistory"></canvas></div></div></div>
+<div class="card" style="margin-bottom:24px"><h2>Monthly Returns</h2>
+<div class="tbl-wrap" id="monthlyTable"></div>
+<div id="monthlyPag" style="display:flex;justify-content:center;gap:8px;margin-top:12px"></div></div>
+</div>
+
+<div class="tab-content" id="tab-trades">
+<div class="sum-grid" id="tradesSummary"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px"><h2 style="font-size:14px;font-weight:600">Closed Positions</h2><button class="btn btn-sm btn-g" id="btnAddTrade" style="display:none">+ Add Trade</button></div>
+<div class="tbl-wrap" id="tradesTable"></div>
+<div class="cg" style="margin-top:20px"><div class="card"><h2>Net P&amp;L by Position</h2><div class="ch ch-s"><canvas id="cTrades"></canvas></div></div><div class="card"><h2>Capital Deployed vs Returned</h2><div class="ch ch-s"><canvas id="cCapital"></canvas></div></div></div>
+</div>
+
+<div class="tab-content" id="tab-gym">
+<div class="sum-grid" id="gymSummary"></div>
+<div class="gym-form add-section" id="gymForm"><div class="fg"><label>Date</label><input type="date" id="gymDate"></div><div class="fg"><label>Weight (kg)</label><input type="number" id="gymWeight" step="0.1" placeholder="78.5"></div><div class="fg"><label>Body Fat (%)</label><input type="number" id="gymBf" step="0.1" placeholder="15.0"></div><button class="btn btn-g" id="btnGymAdd" style="height:38px;align-self:flex-end">Add</button></div>
+<div class="card" style="margin-bottom:20px"><h2>Weight &amp; Body Fat Progress</h2><div class="ch ch-l"><canvas id="cGym"></canvas></div></div>
+<div class="tbl-wrap" id="gymTable"></div>
+</div>
+
+<div class="tab-content" id="tab-books">
+<div class="sum-grid" id="booksSummary"></div>
+<div class="filter-bar"><input type="text" id="booksSearch" placeholder="Search title, author...">
+<select id="booksSort"><option value="default">Original order</option><option value="rating-desc">My rating (high)</option><option value="gr-desc">Goodreads (high)</option><option value="pages-desc">Pages (most)</option><option value="pages-asc">Pages (fewest)</option><option value="title">Title A-Z</option></select>
+<select id="booksFilter"><option value="all">All</option><option value="rated">Rated</option><option value="unrated">Not rated</option></select>
+<button class="btn btn-sm btn-g add-section" id="btnAddBook">+ Add</button></div>
+<div class="card taste-card" id="booksInsights" style="display:none"></div>
+<div class="media-grid" id="booksGrid"></div>
+</div>
+
+<div class="tab-content" id="tab-movies">
+<div class="sum-grid" id="moviesSummary"></div>
+<div class="filter-bar"><input type="text" id="moviesSearch" placeholder="Search title, director, actor...">
+<select id="moviesSort"><option value="default">Original order</option><option value="fa-desc">Filmaffinity (high)</option><option value="my-desc">My rating (high)</option><option value="year-desc">Year (newest)</option><option value="year-asc">Year (oldest)</option><option value="dur-desc">Duration (longest)</option><option value="dur-asc">Duration (shortest)</option><option value="title">Title A-Z</option></select>
+<select id="moviesFilter"><option value="all">All</option><option value="rated">Rated</option><option value="unrated">Not rated</option></select>
+<button class="btn btn-sm btn-g add-section" id="btnAddMovie">+ Add</button></div>
+<div class="card taste-card" id="moviesInsights" style="display:none"></div>
+<div class="media-grid" id="moviesGrid"></div>
+</div>
+
+<div class="tab-content" id="tab-series">
+<div class="sum-grid" id="seriesSummary"></div>
+<div class="filter-bar"><input type="text" id="seriesSearch" placeholder="Search title, platform...">
+<select id="seriesSort"><option value="default">Original order</option><option value="rating-desc">My rating (high)</option><option value="imdb-desc">IMDB (high)</option><option value="title">Title A-Z</option></select>
+<select id="seriesFilter"><option value="all">All</option><option value="finished">Finished</option><option value="watching">Want to finish</option><option value="dropped">Dropped</option><option value="notstarted">Not started</option></select>
+<button class="btn btn-sm btn-g add-section" id="btnAddSeries">+ Add</button></div>
+<div class="card taste-card" id="seriesInsights" style="display:none"></div>
+<div class="media-grid" id="seriesGrid"></div>
+
+</div>
+
+<div class="tab-content" id="tab-watchlist">
+<div class="card add-section" style="margin-bottom:20px">
+  <h2>Add to Watchlist</h2>
+  <form id="wlForm" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px">
+    <div class="fg" style="min-width:100px;flex:1"><label>Ticker</label><input id="wlTicker" type="text" placeholder="AAPL" style="text-transform:uppercase" required></div>
+    <div class="fg" style="min-width:160px;flex:2"><label>Name (optional)</label><input id="wlName" type="text" placeholder="Apple Inc."></div>
+    <div class="fg" style="min-width:110px;flex:1"><label>Target price</label><input id="wlTarget" type="number" placeholder="150.00" step="0.001" min="0.001" required></div>
+    <div class="fg" style="min-width:90px;flex:0 0 auto"><label>Currency</label>
+      <select id="wlCurrency" class="input">
+        <option value="USD">USD</option>
+        <option value="EUR">EUR</option>
+        <option value="GBP">GBP</option><option value="JPY">JPY</option>
+        <option value="CAD">CAD</option>
+      </select>
+    </div>
+    <button class="btn btn-g" type="submit" style="height:38px;align-self:flex-end;white-space:nowrap">+ Add</button>
+  </form>
+</div>
+<div class="card">
+  <h2>Stocks on Watch</h2>
+  <p id="wlEmpty" class="empty-state" style="display:none">Your watchlist is empty. Add a ticker and a target price above — it will light up green when the market comes to you.</p>
+  <div class="tbl-wrap">
+    <table id="wlTable">
+      <thead><tr>
+        <th>Name</th>
+        <th>vs Target</th>
+        <th>Current price</th>
+        <th>Target price</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="wlBody"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<div class="tab-content" id="tab-analytics">
+<div class="sum-grid" id="analyticsSummary"></div>
+<div class="cg">
+  <div class="card"><h2>Sector Allocation</h2><div class="ch ch-s"><canvas id="cSector"></canvas></div></div>
+  <div class="card"><h2>Currency Exposure (EUR)</h2><div class="ch ch-s"><canvas id="cCurrency"></canvas></div></div>
+</div>
+<div class="cg">
+  <div class="card" style="grid-column:1/-1">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <h2 style="margin:0">Portfolio vs Benchmarks</h2>
+      <select id="benchmarkPeriod" class="input" style="display:none"><!-- replaced by #benchmarkBtns --></select>
+      <div id="benchmarkBtns" class="bench-grp">
+        <button class="bench-btn active" data-period="all">ALL</button>
+        <button class="bench-btn" data-period="1y">1Y</button>
+        <button class="bench-btn" data-period="6m">6M</button>
+        <button class="bench-btn" data-period="3m">3M</button>
+        <button class="bench-btn" data-period="1m">1M</button>
+      </div>
+    </div>
+    <div class="ch ch-l"><canvas id="cBenchmark"></canvas></div>
+  </div>
+</div>
+<div class="card" style="margin-bottom:16px">
+  <h2>Risk &amp; Performance</h2>
+  <div class="sum-grid" id="riskGrid" style="margin-bottom:0"></div>
+</div>
+<div class="cg cg-auto">
+  <div class="card"><h2>Monthly Returns Heatmap</h2><div id="heatmapWrap" class="heatmap-wrap"></div></div>
+</div>
+<div class="card" style="margin-bottom:16px">
+  <h2>Road to &euro;1M</h2>
+  <div id="milestones"></div>
+</div>
+<div class="card" style="margin-bottom:24px">
+  <h2>Compound Interest Calculator</h2>
+  <div class="calc-wrap" id="calcWrap">
+    <div class="calc-inputs">
+      <div class="fg"><label>Initial capital (€)</label><input type="number" id="calcCapital" value="10000" min="0" step="100"></div>
+      <div class="fg"><label>Monthly contribution (€)</label><input type="number" id="calcMonthly" value="1000" min="0" step="50"></div>
+      <div class="fg"><label>Annual return (%)</label><input type="number" id="calcRate" value="25" step="0.1" min="0" max="100"></div>
+      <div class="fg"><label>Years</label><input type="number" id="calcYears" value="20" min="1" max="50" step="1"></div>
+      <button class="btn btn-g" id="btnCalc" style="width:100%;justify-content:center">Calculate</button>
+    </div>
+    <div id="calcResult" class="calc-result"></div>
+  </div>
+  <div class="ch ch-l" style="margin-top:20px"><canvas id="cCalc"></canvas></div>
+</div>
+</div>
+</main>
+
+</div><div class="overlay" id="ov"><div class="modal" id="mod"></div></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     LOGIN OVERLAY — Institutional Access Portal (Google Sign-In)
+     El botón se renderiza en #gsiButton vía Google Identity Services
+     (auth.js). Oculto por app.js cuando hay sesión activa.
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="loginOv" style="position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(8,8,24,.92),rgba(2,2,10,.99));backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%)">
+  <div style="position:relative;background:linear-gradient(180deg,rgba(34,223,138,.04) 0%,transparent 60%),#0d0d1a;border:1px solid #2d2d55;border-radius:20px;padding:48px 40px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04),0 0 80px rgba(34,223,138,.12);min-height:480px;overflow:hidden">
+    <div style="position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(34,223,138,.6),transparent)"></div>
+    <img src="icons/logo.png" alt="Track MRP" width="76" height="76" style="width:76px;border-radius:20px;margin-bottom:24px;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 32px rgba(34,223,138,.4)">
+    <div style="color:#22df8a;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-weight:600">Institutional Access Portal</div>
+    <h2 style="margin:0 0 6px;font-size:24px;font-family:'Sora',sans-serif;font-weight:800;letter-spacing:-.6px;background:linear-gradient(180deg,#fff 0%,#22df8a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Track MRP</h2>
+    <p style="color:#7070a0;font-size:11px;margin:0 0 32px;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px">Authorized Personnel Only</p>
+
+    <div id="gsiButton" style="display:flex;justify-content:center;margin:30px 0 10px"></div>
+    <div id="loginErr" style="color:#ff4466;font-size:11px;margin-top:10px;min-height:16px;font-family:'IBM Plex Mono',monospace"></div>
+
+    <div style="margin-top:30px;padding-top:18px;border-top:1px solid #1a1a35;color:#5a5a7a;font-size:9px;font-family:'IBM Plex Mono',monospace;letter-spacing:1.4px;font-weight:600">
+      ACCESS RESTRICTED &middot; NO PUBLIC REGISTRATION
+    </div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+<script type="module" src="js/app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW registration failed:', e));
+    });
+  }
+</script>
+</body>
+</html>

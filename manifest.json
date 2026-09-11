@@ -1,0 +1,20 @@
+{
+  "name": "Track MRP",
+  "short_name": "Track MRP",
+  "description": "Portfolio financiero, gym, libros y series — tracker personal.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#060611",
+  "theme_color": "#060611",
+  "orientation": "portrait",
+  "lang": "es",
+  "categories": ["finance", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "icons/logo.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
