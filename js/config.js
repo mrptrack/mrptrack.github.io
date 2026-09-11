@@ -9,7 +9,7 @@
 export const GOOGLE_CLIENT_ID = '291605339266-hfqnq95geadidevdeq1ml1mokmmcs0bn.apps.googleusercontent.com';
 
 // --- STORAGE (Drive vía Apps Script) ---
-export const PROXY_URL = 'https://script.google.com/macros/s/AKfycbybSusVna8maivC4ilshN_3cIHSq_c60CP8Qn7ZWRb2TAWxWgQxha_dR9qljxLSLAI3/exec';
+export const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzw4G8vvJTwDJvcw7G5TCSAtITVrU5YhuTs2dJ2MO9vSOy8iLP3jYosdGsrUojKqwI6/exec';
 
 // ── Constantes estáticas ────────────────────────────────────
 
