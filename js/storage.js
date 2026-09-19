@@ -1,3 +1,4 @@
+import { lifeDefaults } from './life-schema.js';
 // ============================================================
 //  storage.js — Operaciones con localStorage y datos D
 // ============================================================
@@ -56,11 +57,14 @@ export function loadDataFromObj(obj, merge) {
   D.series    = obj.series    || FALLBACK.series;
   D.games = obj.games ?? D.games ?? [];
   D.watchlist = obj.watchlist || FALLBACK.watchlist;
+  Object.assign(D, lifeDefaults(obj, D));
+  document.dispatchEvent(new Event('data-loaded'));
 }
 
 // Serializa D a un objeto plano para guardar/enviar
 export function buildDataObj() {
   return {
+    ...lifeDefaults(D),
     holdings:     D.holdings,
     cash:         D.cash,
     totalInvested: D.totalInvested,

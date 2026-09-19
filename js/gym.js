@@ -1,3 +1,5 @@
+import { locale } from './i18n.js';
+import { renderTraining } from './training.js';
 // ============================================================
 //  gym.js — Seguimiento de peso y % grasa corporal
 // ============================================================
@@ -28,11 +30,13 @@ export function addGymEntry() {
 }
 
 export function renderGym() {
+  renderTraining();
+  document.getElementById('cGym').closest('.card').hidden=!(D.gym||[]).length;
   renderGymInsights();
   const ctx = document.getElementById('cGym').getContext('2d');
   const labels = D.gym.map(g => {
     const d = new Date(g.date);
-    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: '2-digit' });
+    return d.toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: '2-digit' });
   });
 
   if (CH.gym) CH.gym.destroy();

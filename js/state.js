@@ -40,5 +40,5 @@ export function isFallbackState() {
   const noBooks    = !D.books  || D.books.length === 0;
   const noMovies   = !D.movies || D.movies.length === 0;
   const noSeries   = !D.series || D.series.length === 0;
-  return noHoldings && noCash && noInvested && noClosed && noHistory && noGym && noBooks && noMovies && noSeries && !(D.games || []).length;
+  return noHoldings && noCash && noInvested && noClosed && noHistory && noGym && noBooks && noMovies && noSeries && !(D.games || []).length && !(D.workouts || []).length && !(D.watchlist || []).length && !D.trainingInitialized;
 }

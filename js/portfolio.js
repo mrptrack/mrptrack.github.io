@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 // ============================================================
 //  portfolio.js — Cotizaciones, FX y render del portfolio
 // ============================================================
@@ -215,7 +216,7 @@ export async function refreshPortfolio() {
   }
 
   dot.style.background = (allOk && fxOk) ? 'var(--green)' : 'var(--amber)';
-  const now = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const now = new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   tsE.textContent = (allOk && fxOk) ? now : now + ' (Parcial)';
   _refreshing = false;
 }
@@ -307,7 +308,7 @@ function rStocks() {
       </div>` : ''}</div>
       ${wk52html}${fundHtml}
       <div class="s-meta">
-        <div><div class="ml">Shares</div><div class="mv">${h.shares.toLocaleString('de-DE')}</div></div>
+        <div><div class="ml">Shares</div><div class="mv">${h.shares.toLocaleString(locale())}</div></div>
         <div><div class="ml">Value (EUR)</div><div class="mv ${dOk ? 'up' : ''}">${dOk ? F(ve) + ' \u20ac' : '--'}</div></div>
         <div><div class="ml">Dividends (${h.currency})</div><div class="mv ${(h.dividends || 0) > 0 ? 'up' : ''}">${(h.dividends || 0) > 0 ? '+' + F(h.dividends) + ' ' + h.currency : '\u2014'}</div></div>
         <div><div class="ml">% of Portfolio</div><div class="mv">${dOk ? F(pctOfPortfolio, 1) + '%' : '--'}</div></div>
@@ -460,7 +461,7 @@ function renderHistoryChart() {
   const fmt = (period === '3m' || period === '1m')
     ? { day: 'numeric', month: 'short' }
     : { month: 'short', year: '2-digit' };
-  const labels = sampled.map(h => new Date(h.date).toLocaleDateString('es-ES', fmt));
+  const labels = sampled.map(h => new Date(h.date).toLocaleDateString(locale(), fmt));
   const invested = sampled.map(h => h.totalInvested);
   const values = sampled.map(h => h.totalValue);
   const ctx = document.getElementById('cHistory').getContext('2d');
@@ -554,7 +555,7 @@ function renderMonthlyTable() {
     const totalRet = last.totalInvested > 0 ? ((endVal - last.totalInvested) / last.totalInvested) * 100 : 0;
     const pos = t.pnl >= 0, rPos = t.ret >= 0, tPos = totalRet >= 0;
     const [y, mo] = m.key.split('-');
-    const mName = new Date(parseInt(y), parseInt(mo) - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const mName = new Date(parseInt(y), parseInt(mo) - 1).toLocaleDateString(locale(), { month: 'short', year: 'numeric' });
     rows += `<tr>
       <td style="font-weight:600">${mName}</td>
       <td>${F(startVal)} \u20ac</td><td>${F(endVal)} \u20ac</td>
@@ -640,7 +641,7 @@ export function toggleHoldingDetail(cardEl, holdingIdx) {
       ${chip('Buy date', h.buyDate)}
     </div>
     <div class="acc-grid">
-      <div class="sum-card" style="padding:10px"><div class="sum-lbl">Shares</div><div class="sum-val">${h.shares.toLocaleString('de-DE')}</div></div>
+      <div class="sum-card" style="padding:10px"><div class="sum-lbl">Shares</div><div class="sum-val">${h.shares.toLocaleString(locale())}</div></div>
       <div class="sum-card" style="padding:10px"><div class="sum-lbl">Avg Entry</div><div class="sum-val">${F(h.entryPrice)}&nbsp;${h.currency}</div></div>
       <div class="sum-card" style="padding:10px"><div class="sum-lbl">Value (EUR)</div><div class="sum-val ${dOk ? 'up' : ''}">${dOk ? F(ve) + '\u00a0\u20ac' : '\u2014'}</div></div>
       <div class="sum-card" style="padding:10px"><div class="sum-lbl">Total Return</div><div class="sum-val ${dOk ? (hRoiAbs >= 0 ? 'up' : 'dn') : ''}">${dOk ? (hRoiAbs >= 0 ? '+' : '') + F(hRoiPct) + '% (' + (hRoiAbs >= 0 ? '+' : '') + F(hRoiAbs) + '\u00a0\u20ac)' : '\u2014'}</div></div>

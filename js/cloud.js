@@ -22,7 +22,7 @@ function _payloadIsEmpty(j) {
   const noCash     = !j.cash;
   const noInvested = !j.totalInvested;
   const noClosed   = !j.closedTrades || !Array.isArray(j.closedTrades) || j.closedTrades.length === 0;
-  return noHoldings && noCash && noInvested && noClosed && !['history','gym','books','movies','series','watchlist','games'].some(k => Array.isArray(j[k]) && j[k].length);
+  return noHoldings && noCash && noInvested && noClosed && !j.trainingInitialized && !['history','gym','books','movies','series','watchlist','games','workouts'].some(k => Array.isArray(j[k]) && j[k].length);
 }
 
 export let _cloudReady = false;

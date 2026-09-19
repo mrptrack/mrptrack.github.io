@@ -1,3 +1,4 @@
+import { initSettings, applyPreferences } from './settings.js';
 // ============================================================
 //  app.js — Punto de entrada. Orquesta todos los módulos.
 // ============================================================
@@ -20,6 +21,7 @@ import { renderGames, initGames } from './games.js';
 // Cada módulo se programa como una tarea independiente (setTimeout 0)
 // para ceder el hilo principal al navegador entre renders y reducir el TBT.
 function renderAll() {
+  applyPreferences();
   renderPortfolio();
   renderGames();
   setTimeout(() => renderTrades(), 0);
@@ -189,25 +191,6 @@ document.getElementById('benchmarkBtns')?.addEventListener('click', e => {
   renderBenchmark();
 });
 
-// ── Toggle de tema claro/oscuro ──────────────────────────────
-// Dark es el valor por defecto absoluto. Solo se activa light
-// cuando el usuario lo selecciona manualmente.
-(function initTheme() {
-  const saved = localStorage.getItem('trackmrp_theme');
-  if (saved === 'light') document.documentElement.classList.add('theme-light');
-  else document.documentElement.classList.add('theme-dark');
-})();
-
-document.getElementById('btnTheme')?.addEventListener('click', () => {
-  const html = document.documentElement;
-  const isLight = html.classList.contains('theme-light');
-  html.classList.toggle('theme-light', !isLight);
-  html.classList.toggle('theme-dark', isLight);
-  localStorage.setItem('trackmrp_theme', isLight ? 'dark' : 'light');
-  const btn = document.getElementById('btnTheme');
-  if (btn) btn.textContent = isLight ? '☽' : '☀';
-});
-
 // ── Listeners de botones de la barra superior ────────────────
 // btnLogout — Sign out
 document.getElementById('btnLogout')?.addEventListener('click', () => signOut());
@@ -270,16 +253,10 @@ document.addEventListener('click', function (e) {  // En modo lectura no se proc
 // ── Inicialización ───────────────────────────────────────────
 async function init() {
   loadData();
+  initSettings();
   initWatchlist();
   initGames();
   document.getElementById('gymDate').value = new Date().toISOString().slice(0, 10);
-
-  // Icono del botón de tema al estado actual
-  const btnTheme = document.getElementById('btnTheme');
-  if (btnTheme) {
-    const isLight = document.documentElement.classList.contains('theme-light');
-    btnTheme.textContent = isLight ? '☀' : '☽';
-  }
 
   // Ocultar btnAdmin hasta que haya sesión activa
   const adminBtn = document.getElementById('btnAdmin');
@@ -308,4 +285,5 @@ async function init() {
   window.addEventListener('offline', () => toast('Sin conexión — mostrando datos en caché', 'err'));
 }
 
+document.addEventListener('preferences-changed', () => { renderAll(); renderCalculator(); if (_benchmarkLoaded) renderBenchmark(); });
 init();

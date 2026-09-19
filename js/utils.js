@@ -1,10 +1,11 @@
+import { locale } from './i18n.js';
 // ============================================================
 //  utils.js — Funciones de utilidad reutilizables
 // ============================================================
 
 // Formatea un número con separadores alemanes (1.234,56)
 export const F = (n, d = 2) =>
-  n.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+  n.toLocaleString(locale(), { minimumFractionDigits: d, maximumFractionDigits: d });
 
 // Devuelve color CSS según ratio (verde/ámbar/gris/rojo)
 export function ratingColor(r, max = 10) {

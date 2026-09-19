@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 // ============================================================
 //  insights.js — Métricas derivadas: riesgo, heatmap,
 //  milestones, stats de gym y perfil de gustos (media).
@@ -18,7 +19,7 @@ function _monthlySeries() {
 function _monthName(key) {
   const [y, m] = key.split('-');
   return new Date(parseInt(y), parseInt(m) - 1)
-    .toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    .toLocaleDateString(locale(), { month: 'short', year: '2-digit' });
 }
 
 // ── Render principal (lo llama renderAnalytics) ───────────────
@@ -142,7 +143,7 @@ function _renderMilestones(monthly) {
     if (months > 120) return '10y+';
     const d = new Date();
     d.setMonth(d.getMonth() + months);
-    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    return d.toLocaleDateString(locale(), { month: 'short', year: 'numeric' });
   };
 
   const next = MILESTONES.find(m => m > current);

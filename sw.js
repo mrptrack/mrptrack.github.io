@@ -14,7 +14,7 @@
 //
 // ============================================================
 
-const CACHE_VERSION = 'mrp-v1'; const APP_BASE = new URL('./', self.location.href);
+const CACHE_VERSION = 'mrp-v2'; const APP_BASE = new URL('./', self.location.href);
 
 // Nombres de cada caché por tipo
 const CACHE_STATIC = 'trackmrp-static-' + CACHE_VERSION;
@@ -36,6 +36,12 @@ const PRECACHE_URLS = [
   new URL('js/gym.js', APP_BASE).href,
   new URL('js/media.js', APP_BASE).href,
   new URL('js/games.js', APP_BASE).href,
+  new URL('js/i18n.js', APP_BASE).href,
+  new URL('js/settings.js', APP_BASE).href,
+  new URL('js/life-schema.js', APP_BASE).href,
+  new URL('js/training.js', APP_BASE).href,
+  new URL('js/media-editor.js', APP_BASE).href,
+  new URL('css/life.css', APP_BASE).href,
   new URL('js/game-schema.js', APP_BASE).href,
   new URL('js/modals.js', APP_BASE).href,
   new URL('js/auth.js', APP_BASE).href,

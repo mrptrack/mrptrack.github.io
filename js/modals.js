@@ -1,3 +1,5 @@
+import { locale } from './i18n.js';
+import { openMediaModal } from './media-editor.js';
 // ============================================================
 //  modals.js — Modales de edición y alta
 //
@@ -163,6 +165,7 @@ window.closeModal = closeModal;
 
 // ── Abrir modal de edición ───────────────────────────────────
 export function openEditModal(type, idx) {
+  if (['book','movie','serie'].includes(type)) return openMediaModal(type, idx);
   if (type === 'game') return openGameModal(idx);
   if (!_authed) return;
   const m = document.getElementById('mod');
@@ -415,6 +418,7 @@ window.modalDelete = function (type, idx) {
 
 // ── Abrir modal de alta ──────────────────────────────────────
 export function openAddModal(type) {
+  if (['book','movie','serie'].includes(type)) return openMediaModal(type);
   const m = document.getElementById('mod');
   let f = '';
   if (type === 'book') {
@@ -575,7 +579,7 @@ window.openClosePositionModal = function (holdingIdx) {
   const todayStr = new Date().toISOString().slice(0, 10);
   const m = document.getElementById('mod');
   m.innerHTML = `<h2>Close Position — ${h.ticker}</h2>
-    <p style="color:var(--text-dim);font-size:13px;margin-bottom:16px">${h.name || h.ticker} &mdash; ${h.shares.toLocaleString('de-DE')} shares &bull; avg entry ${h.entryPrice} ${h.currency}</p>
+    <p style="color:var(--text-dim);font-size:13px;margin-bottom:16px">${h.name || h.ticker} &mdash; ${h.shares.toLocaleString(locale())} shares &bull; avg entry ${h.entryPrice} ${h.currency}</p>
     <div class="fg"><label>Shares to sell * <small style="color:var(--text-muted)">(max ${h.shares})</small></label>
       <input type="number" id="cSellShares" min="1" max="${h.shares}" value="${h.shares}" autofocus>
     </div>
@@ -728,7 +732,7 @@ export function openDetailModal(holdingIdx) {
       ${has52 ? `<span class="detail-chip">52w Lo ${pd.wk52Low.toFixed(2)}</span><span class="detail-chip">Hi ${pd.wk52High.toFixed(2)}</span><span class="detail-chip">${pct52}% of range</span>` : ''}
     </div>` : ''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
-      <div class="sum-card" style="padding:10px"><div class="sum-lbl">Shares</div><div class="sum-val" style="font-size:16px">${h.shares.toLocaleString('de-DE')}</div></div>
+      <div class="sum-card" style="padding:10px"><div class="sum-lbl">Shares</div><div class="sum-val" style="font-size:16px">${h.shares.toLocaleString(locale())}</div></div>
       <div class="sum-card" style="padding:10px"><div class="sum-lbl">Avg Entry</div><div class="sum-val" style="font-size:16px">${h.entryPrice} ${h.currency}</div></div>
       <div class="sum-card" style="padding:10px"><div class="sum-lbl">Current Value</div><div class="sum-val ${dOk?'up':''} " style="font-size:16px">${dOk ? (ve * (h.currency==='EUR'?1:1)).toFixed(2)+' '+h.currency : '—'}</div></div>
       <div class="sum-card" style="padding:10px"><div class="sum-lbl">Unrealized P&L</div><div class="sum-val ${dOk?(hRoi>=0?'up':'dn'):''} " style="font-size:16px">${dOk ? (hRoi>=0?'+':'')+hRoi.toFixed(2)+' '+h.currency : '—'}</div></div>

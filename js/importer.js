@@ -1,3 +1,4 @@
+import { validateLife, lifeDefaults, esc } from './life-schema.js';
 // ============================================================
 //  importer.js — Import de backups JSON (la vuelta del export)
 //
@@ -26,7 +27,7 @@ import { renderGames } from './games.js';
 import { validateGame } from './game-schema.js';
 const CURRENCIES = ['EUR', 'USD', 'CAD', 'GBP', 'JPY'];
 const KNOWN_KEYS = ['holdings', 'cash', 'totalInvested', 'closedTrades', 'history',
-  'gym', 'books', 'movies', 'series', 'watchlist', 'games'];
+  'gym', 'books', 'movies', 'series', 'watchlist', 'games', 'schemaVersion', 'preferences', 'workouts', 'activities', 'trainingInitialized'];
 
 // ── Validación de esquema (pura, testeable desde consola) ────
 export function validateImportObj(obj) {
@@ -35,6 +36,8 @@ export function validateImportObj(obj) {
     return { ok: false, errors: ['El JSON raíz debe ser un objeto'], warnings, data: null };
   }
 
+  errors.push(...validateLife({...obj, activities: obj.activities ?? D.activities}));
+  for (const key of ['workouts','activities','preferences']) if (obj[key] == null && D[key]) warnings.push(key + ': missing in backup; current data will be preserved');
   const isNum = v => typeof v === 'number' && isFinite(v);
   const arr = k => Array.isArray(obj[k]) ? obj[k] : (obj[k] == null ? null : undefined);
 
@@ -102,6 +105,7 @@ export function validateImportObj(obj) {
   const map = {};
   (obj.history || []).forEach(h => { map[h.date] = h; });
   const data = {
+    ...lifeDefaults(obj, structuredClone(D)),
     holdings: obj.holdings || [], cash: obj.cash ?? 0, totalInvested: obj.totalInvested ?? 0,
     closedTrades: obj.closedTrades || [],
     history: Object.values(map).sort((a, b) => a.date.localeCompare(b.date)),
@@ -128,6 +132,7 @@ function _summaryRows(data) {
     ['Gym / Books / Movies / Series',
       `${cur.gym.length} / ${cur.books.length} / ${cur.movies.length} / ${cur.series.length}`,
       `${data.gym.length} / ${data.books.length} / ${data.movies.length} / ${data.series.length}`],
+    ['Sessions', (cur.workouts || []).length, (data.workouts || []).length],
     ['Games', (cur.games || []).length, data.games.length],
     ['Watchlist', (cur.watchlist || []).length, data.watchlist.length]
   ];
@@ -203,14 +208,14 @@ async function _analyze() {
   if (!res.ok) {
     box.innerHTML = `<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:10px;padding:12px;margin:10px 0;font-size:12px">
       <b style="color:var(--red)">No se puede importar:</b>
-      <ul style="margin:6px 0 0 16px">${res.errors.map(e => `<li>${e}</li>`).join('')}</ul></div>`;
+      <ul style="margin:6px 0 0 16px">${res.errors.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div>`;
     _pending = null;
     return;
   }
   _pending = res.data;
   const warn = res.warnings.length
     ? `<div style="background:var(--amber-bg);border:1px solid var(--amber);border-radius:10px;padding:10px;margin:10px 0;font-size:11px">
-        ${res.warnings.map(w => `⚠ ${w}`).join('<br>')}</div>`
+        ${res.warnings.map(w => `⚠ ${esc(w)}`).join('<br>')}</div>`
     : '';
   box.innerHTML = `${warn}
     <div class="tbl-wrap" style="margin:10px 0">

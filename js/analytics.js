@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 // ============================================================
 //  analytics.js — Pestaña Analytics: sectores, divisa,
 //  benchmark SPY, heatmap de dividendos.
@@ -389,7 +390,7 @@ function _drawBenchmark() {
   const labelOpts = stepDays <= 7
     ? { day: 'numeric', month: 'short' }
     : { month: 'short', year: '2-digit' };
-  const labels = axisDates.map(d => new Date(d + 'T00:00:00Z').toLocaleDateString('es-ES', labelOpts));
+  const labels = axisDates.map(d => new Date(d + 'T00:00:00Z').toLocaleDateString(locale(), labelOpts));
 
   // ── Ambas series: retorno absoluto rebasado a 0% en el primer punto del eje ──
   // (misma métrica, mismas aportaciones → comparación honesta)

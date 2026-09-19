@@ -29,6 +29,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700;800&display=swap"></noscript>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/life.css">
 </head>
 <body>
 <a class="skip-link" href="#tabBar">Skip to content</a>
@@ -39,7 +40,7 @@
 <div class="brand"><img src="icons/logo.png" class="logo-small" alt="Track MRP logo" width="36" height="36"><div><h1>Track MRP</h1><small>Private Portfolio</small></div></div>
 <div class="hdr-r"><div class="live-dot" id="dot"></div><span class="ts" id="ts">Loading...</span>
 <span class="sync-status" id="syncStatus" style="color:var(--text-muted)">Local</span>
-<button class="btn" id="btnTheme" title="Toggle theme" aria-label="Toggle light/dark theme">&#x263D;</button>
+<button class="btn" id="btnSettings" title="Settings" aria-label="Settings">&#x2699;</button>
 <button class="btn" id="btnRefresh" title="Refresh prices" aria-label="Refresh prices">&#x21bb;</button>
 <button class="btn" id="btnExport" style="display:none" title="Download JSON backup" aria-label="Download JSON backup">&#x2913;</button>
 <button class="btn" id="btnImport" style="display:none" title="Import JSON backup" aria-label="Import JSON backup">&#x2912;</button>
@@ -63,7 +64,7 @@
 <div class="filter-bar">
 <input id="gamesSearch" type="search" placeholder="Search title, developer, platform..." aria-label="Search games">
 <select id="gamesSort" aria-label="Sort games"><option value="default">Original order</option><option value="myRating">My rating (high)</option><option value="metacritic">Metacritic (high)</option><option value="playedYear">Played (newest)</option><option value="releaseYear">Release (newest)</option><option value="hours">Hours (most)</option><option value="title">Title A-Z</option></select>
-<select id="gamesFilter" aria-label="Game status"><option value="all">All</option><option>Playing</option><option>Completed</option><option>Paused</option><option>Dropped</option><option>Backlog</option></select>
+<select id="gamesFilter" aria-label="Game status"><option value="all">All</option><option value="Playing">Playing</option><option value="Completed">Completed</option><option value="Paused">Paused</option><option value="Dropped">Dropped</option><option value="Backlog">Backlog</option></select>
 <button class="btn btn-sm btn-g add-section" id="btnAddGame">+ Add</button></div>
 <div class="media-grid" id="gamesGrid"></div></div>
 <div class="tab-content active" id="tab-portfolio">
@@ -97,10 +98,13 @@
 </div>
 
 <div class="tab-content" id="tab-gym">
+<div id="trainingDashboard"></div>
+<section class="weight-section"><h2>Body measurements</h2>
 <div class="sum-grid" id="gymSummary"></div>
 <div class="gym-form add-section" id="gymForm"><div class="fg"><label>Date</label><input type="date" id="gymDate"></div><div class="fg"><label>Weight (kg)</label><input type="number" id="gymWeight" step="0.1" placeholder="78.5"></div><div class="fg"><label>Body Fat (%)</label><input type="number" id="gymBf" step="0.1" placeholder="15.0"></div><button class="btn btn-g" id="btnGymAdd" style="height:38px;align-self:flex-end">Add</button></div>
 <div class="card" style="margin-bottom:20px"><h2>Weight &amp; Body Fat Progress</h2><div class="ch ch-l"><canvas id="cGym"></canvas></div></div>
 <div class="tbl-wrap" id="gymTable"></div>
+</section>
 </div>
 
 <div class="tab-content" id="tab-books">

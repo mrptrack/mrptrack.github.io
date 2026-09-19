@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 // ============================================================
 //  trades.js — Trades cerrados: cálculo y render
 // ============================================================
@@ -58,7 +59,7 @@ export function renderTrades() {
     rows += `<tr ${editAttrs} data-trade-idx="${idx}" style="cursor:pointer">
       <td><span style="color:${t.color};font-weight:600">${t.ticker}</span>${curTag}</td>
       <td style="white-space:normal">${t.name}</td>
-      <td>${t.totalShares.toLocaleString('de-DE')}</td>
+      <td>${t.totalShares.toLocaleString(locale())}</td>
       <td>${F(c.rawBuy)}${curTag}</td>
       <td>${F(c.rawSell)}${curTag}</td>
       ${hasBuyDate ? `<td style="font-size:11px;color:var(--text-dim)">${t.buyDate || '\u2014'}</td>` : ''}
