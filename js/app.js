@@ -3,7 +3,7 @@ import { initSettings, applyPreferences } from './settings.js';
 //  app.js — Punto de entrada. Orquesta todos los módulos.
 // ============================================================
 import { loadData } from './storage.js';
-import { fetchDataFromCloud, syncNow } from './cloud.js';
+import { fetchDataFromCloud, updateSyncStatus } from './cloud.js';
 import { refreshPortfolio, renderPortfolio, renderHistory, toggleHoldingDetail } from './portfolio.js';
 import { renderTrades, toggleTradeDetail } from './trades.js';
 import { addGymEntry, renderGym } from './gym.js';
@@ -111,6 +111,7 @@ async function _postAuthInit() {
     ok = await fetchDataFromCloud();
   } catch (_) { ok = false; }
   if (ok) renderAll();
+  else updateSyncStatus('local');
   // 3. AHORA sí, ya con D estable, arrancamos prices + intervalo
   refreshPortfolio();
   if (!_rfInterval) _rfInterval = setInterval(refreshPortfolio, 60000);
@@ -191,15 +192,7 @@ document.getElementById('benchmarkBtns')?.addEventListener('click', e => {
 // ── Listeners de botones de la barra superior ────────────────
 // btnLogout — Sign out
 document.getElementById('btnLogout')?.addEventListener('click', () => signOut());
-let _manualRefresh = false;
-document.getElementById('btnRefresh')?.addEventListener('click', async () => {
-  if (_manualRefresh) return;
-  _manualRefresh = true;
-  try {
-    if (await syncNow()) renderAll();
-    await refreshPortfolio();
-  } finally { _manualRefresh = false; }
-});
+document.getElementById('btnRefresh')?.addEventListener('click', () => refreshPortfolio());
 document.getElementById('btnImport')?.addEventListener('click', () => openImportModal());
 document.getElementById('btnAdmin')?.addEventListener('click', () => _applyEditMode(!_editMode));
 document.getElementById('btnAddHolding')?.addEventListener('click', () => doAction('addHolding'));

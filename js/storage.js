@@ -121,10 +121,6 @@ export function updateSyncStatus(state) {
     el.textContent = 'Synced';
     el.style.color = 'var(--green)';
     el.style.borderColor = 'rgba(34,223,138,.3)';
-  } else if (state === 'loading' || state === 'saving' || state === 'pending') {
-    el.textContent = state === 'loading' ? 'Loading...' : state === 'saving' ? 'Saving…' : 'Pending sync';
-    el.style.color = 'var(--amber)';
-    el.style.borderColor = 'rgba(255,170,34,.3)';
   } else if (state === 'local') {
     el.textContent = 'Local';
     el.style.color = 'var(--text-dim)';

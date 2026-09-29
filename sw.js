@@ -13,7 +13,7 @@
 //
 // ============================================================
 
-const CACHE_VERSION = 'mrp-v4-cloud'; const APP_BASE = new URL('./', self.location.href);
+const CACHE_VERSION = 'mrp-v3-refresh'; const APP_BASE = new URL('./', self.location.href);
 
 // Nombres de cada caché por tipo
 const CACHE_STATIC = 'trackmrp-static-' + CACHE_VERSION;
