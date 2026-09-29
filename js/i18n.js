@@ -1,5 +1,9 @@
 import { D } from './state.js';
 const PAIRS = [
+  ['Refresh and sync','Actualizar y sincronizar'],
+  ['Pending sync','Pendiente sync'],
+  ['Local changes pending — kept in this browser','Cambios locales pendientes — se conservan en este navegador'],
+  ['Saved locally — Drive has not confirmed the changes','Guardado local — Drive no ha confirmado los cambios'],
   ['Settings','Ajustes'],['Language','Idioma'],['Theme','Tema'],['Dark','Oscuro'],['Light','Claro'],['Close','Cerrar'],
   ['Portfolio','Cartera'],['Watchlist','Seguimiento'],['Closed Trades','Operaciones cerradas'],['Analytics','Análisis'],['Gym','Gimnasio'],['Books','Libros'],['Movies','Películas'],['Series','Series'],['Games','Videojuegos'],
   ['Private Portfolio','Cartera personal'],['Loading...','Cargando...'],['Synced','SINCR.'],['Sync error','Error sync'],['Edit','Editar'],['Editing','Editando'],['Refresh prices','Actualizar precios'],['Download JSON backup','Descargar copia JSON'],['Import JSON backup','Importar copia JSON'],['Toggle edit mode','Activar edición'],['Dashboard sections','Secciones'],['Skip to content','Ir al contenido'],

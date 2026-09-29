@@ -15,7 +15,7 @@ const quote = price => ({ chart: { result: [{ meta: { regularMarketPrice: price,
 const rates = { rates: { USD: 1.1, CAD: 1.5, GBP: 0.85, JPY: 160 } };
 
 function network(fetch) {
-  const context = vm.createContext({ fetch, AbortController, setTimeout, clearTimeout });
+  const context = vm.createContext({ fetch, AbortController, setTimeout, clearTimeout, URL });
   vm.runInContext(source('js/network.js').replace(/export /g, ''), context);
   return context.fetchJsonWithTimeout;
 }
@@ -243,5 +243,5 @@ test('service worker does not serve live API data from permanent caches', () => 
     handlers.fetch({ request: { method: 'GET', url: 'https://' + host + '/test' }, respondWith() { assert.fail('Live API intercepted by cache'); } });
   }
   assert.match(source('sw.js'), /js\/network\.js/);
-  assert.match(source('sw.js'), /mrp-v3-refresh/);
+  assert.match(source('sw.js'), /mrp-v4-cloud/);
 });

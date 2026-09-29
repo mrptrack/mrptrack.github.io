@@ -1,5 +1,5 @@
 // Bound the complete request, including reading the response body.
-export async function fetchJsonWithTimeout(url, timeoutMs = 10000) {
+export async function fetchJsonWithTimeout(url, timeoutMs = 10000, options = {}) {
   const controller = new AbortController();
   let timer;
   const deadline = new Promise((_, reject) => {
@@ -13,8 +13,13 @@ export async function fetchJsonWithTimeout(url, timeoutMs = 10000) {
   try {
     return await Promise.race([
       (async () => {
-        const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
-        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const response = await fetch(url, { ...options, signal: controller.signal, cache: 'no-store' });
+        if (!response.ok) {
+          const error = new Error('HTTP ' + response.status);
+          error.status = response.status;
+          error.responseHost = response.url ? new URL(response.url).hostname : '';
+          throw error;
+        }
         return await response.json();
       })(),
       deadline
