@@ -4,16 +4,17 @@
 //  Estrategia de caché:
 //
 //  1. CACHE-FIRST   → assets estáticos (JS, CSS, HTML, fuentes)
-//     Si el recurso está en caché → sirve desde caché hasta cambiar versión.
+//     Si el recurso está en caché → sirve desde caché, actualiza en background.
 //     Si NO está en caché → red → guarda en caché → responde.
 //
-//  2. NETWORK-FIRST → fuentes de Google, con fallback de caché.
-//  3. Sin interceptar → Drive, cotizaciones y divisas: la aplicación
-//     gestiona plazos máximos y conserva sus últimos datos locales.
+//  2. NETWORK-FIRST → llamadas a la API (GAS / script.google.com)
+//     Intenta red (timeout internamente por el propio fetch).
+//     Si la red falla → sirve desde caché como fallback offline.
+//     Nunca deja la UI en blanco.
 //
 // ============================================================
 
-const CACHE_VERSION = 'mrp-v3-refresh'; const APP_BASE = new URL('./', self.location.href);
+const CACHE_VERSION = 'mrp-v2'; const APP_BASE = new URL('./', self.location.href);
 
 // Nombres de cada caché por tipo
 const CACHE_STATIC = 'trackmrp-static-' + CACHE_VERSION;
@@ -31,7 +32,6 @@ const PRECACHE_URLS = [
   new URL('js/storage.js', APP_BASE).href,
   new URL('js/cloud.js', APP_BASE).href,
   new URL('js/portfolio.js', APP_BASE).href,
-  new URL('js/network.js', APP_BASE).href,
   new URL('js/trades.js', APP_BASE).href,
   new URL('js/gym.js', APP_BASE).href,
   new URL('js/media.js', APP_BASE).href,
@@ -57,8 +57,9 @@ const PRECACHE_URLS = [
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
 ];
 
-// Hosts de fuentes que conservan fallback de caché.
+// Hosts cuyas peticiones se tratan con Network-First (APIs externas)
 const API_HOSTS = [
+  'script.google.com',
   'fonts.googleapis.com',
   'fonts.gstatic.com',
 ];
@@ -111,11 +112,7 @@ self.addEventListener('fetch', event => {
   // Ignorar peticiones chrome-extension o no-http
   if (!request.url.startsWith('http')) return;
 
-  // Live market/Drive responses must not come from an indefinitely cached API
-  // response. The app owns deadlines and its explicitly dated market cache.
-  if (['script.google.com', 'script.googleusercontent.com', 'api.exchangerate-api.com', 'open.er-api.com'].includes(url.hostname)) return;
-
-  // ── Network-First para fuentes de Google
+  // ── Network-First para APIs (GAS, fuentes de Google)
   if (API_HOSTS.some(h => url.hostname.includes(h))) {
     event.respondWith(networkFirst(request));
     return;
