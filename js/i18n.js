@@ -1,5 +1,6 @@
 import { D } from './state.js';
 const PAIRS = [
+  ['Sets','Series realizadas'],['Sets not recorded','Series sin indicar'],['Sessions with unrecorded sets','Sesiones con series sin indicar'],['Only recorded sets are counted.','Solo se cuentan las series indicadas.'],['Total sets per muscle group. Leave blank if unknown.','Series totales por grupo muscular. Déjalo vacío si no lo sabes.'],['Enter a whole number of sets from 1 to 999.','Introduce un número entero de series entre 1 y 999.'],['Invalid set counts','Número de series no válido'],
   ['Settings','Ajustes'],['Language','Idioma'],['Theme','Tema'],['Dark','Oscuro'],['Light','Claro'],['Close','Cerrar'],
   ['Portfolio','Cartera'],['Watchlist','Seguimiento'],['Closed Trades','Operaciones cerradas'],['Analytics','Análisis'],['Gym','Gimnasio'],['Books','Libros'],['Movies','Películas'],['Series','Series'],['Games','Videojuegos'],
   ['Private Portfolio','Cartera personal'],['Loading...','Cargando...'],['Synced','SINCR.'],['Sync error','Error sync'],['Edit','Editar'],['Editing','Editando'],['Refresh prices','Actualizar precios'],['Download JSON backup','Descargar copia JSON'],['Import JSON backup','Importar copia JSON'],['Toggle edit mode','Activar edición'],['Dashboard sections','Secciones'],['Skip to content','Ir al contenido'],

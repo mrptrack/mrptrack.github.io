@@ -14,7 +14,7 @@
 //
 // ============================================================
 
-const CACHE_VERSION = 'mrp-v2'; const APP_BASE = new URL('./', self.location.href);
+const CACHE_VERSION = 'mrp-v5-gym-sets'; const APP_BASE = new URL('./', self.location.href);
 
 // Nombres de cada caché por tipo
 const CACHE_STATIC = 'trackmrp-static-' + CACHE_VERSION;

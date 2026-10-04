@@ -1,5 +1,8 @@
 // Versioned, additive schema. Financial data and original media fields are never rewritten.
 export const MUSCLES = ['chest','back','lowerBack','shoulders','abs','cardio','legs','biceps','triceps'];
+// Missing counts stay unknown: a legacy muscle selection is not one set.
+export const validSetCount = n => Number.isInteger(n) && n > 0 && n <= 999;
+export const muscleSets = (workout, muscle) => workout.muscles?.includes(muscle) && validSetCount(workout.sets?.[muscle]) ? workout.sets[muscle] : null;
 export const DEFAULT_ACTIVITIES = [
   {id:'boxing',name:'Boxeo',translations:{es:{name:'Boxeo'},en:{name:'Boxing'}}},
   {id:'football',name:'Fútbol',translations:{es:{name:'Fútbol'},en:{name:'Football'}}},
@@ -30,6 +33,7 @@ export function validateLife(obj) {
   (Array.isArray(obj.workouts)?obj.workouts:[]).forEach(w=>{
     if(!record(w) || typeof w.id!=='string' || !w.id || seen.has(w.id) || !validDate(w.date) || w.date>today() || !['gym','activity'].includes(w.mode) || !Array.isArray(w.muscles) || w.muscles.some(m=>!MUSCLES.includes(m)) || new Set(w.muscles).size!==w.muscles.length || (w.mode==='gym' && !w.muscles.length) || (w.mode==='activity' && !ids.has(w.activityId))) errors.push('Invalid or duplicate workout');
     if(w) seen.add(w.id);
+    if(w && Object.hasOwn(w,'sets') && (!record(w.sets) || Object.entries(w.sets).some(([m,n])=>!MUSCLES.includes(m) || !Array.isArray(w.muscles) || !w.muscles.includes(m) || !validSetCount(n)))) errors.push('Invalid set counts');
   });
   for(const k of ['books','movies','series','games','activities']) {
     (Array.isArray(obj[k])?obj[k]:[]).forEach(x=>{

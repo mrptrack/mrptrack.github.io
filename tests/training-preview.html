@@ -1,0 +1,15 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gym sets · isolated test</title><link rel="stylesheet" href="/css/styles.css"><link rel="stylesheet" href="/css/life.css">
+<body style="padding:16px"><p>Vista de prueba · datos ficticios · sin conexión a Drive</p>
+<label>Idioma <select id="testLanguage"><option value="es">Español</option><option value="en">English</option></select></label>
+<main id="trainingDashboard"></main><div class="overlay" id="ov"><div class="modal" id="mod"></div></div>
+<script type="module">
+import {D,setAuthed} from '/js/state.js';
+import {today,DEFAULT_ACTIVITIES} from '/js/life-schema.js';
+import {renderTraining} from '/js/training.js';
+import {initI18n} from '/js/i18n.js';
+Object.assign(D,JSON.parse(sessionStorage.getItem('gym-test')||'null')||{preferences:{language:'es',theme:'dark'},activities:structuredClone(DEFAULT_ACTIVITIES),workouts:[{id:'old',date:today(),mode:'gym',muscles:['legs']}]});
+setAuthed(true);initI18n();renderTraining();
+document.getElementById('testLanguage').value=D.preferences.language;
+document.getElementById('testLanguage').onchange=e=>{D.preferences.language=e.target.value;renderTraining();};
+</script></body></html>
