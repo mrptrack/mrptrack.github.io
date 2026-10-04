@@ -104,13 +104,11 @@ let _rfInterval = null;
 async function _postAuthInit() {
   renderAll();        // 1. Render inmediato con localStorage (o vacío)
   renderCalculator();
-  // 2. Cloud fetch SIN concurrencia con refreshPortfolio (timeout 8s)
+  // 2. Esperar al resultado real: cloud.js ya limita la lectura a 20 s.
+  // El timeout de 8 s abandonaba una lectura que seguía modificando D.
   let ok = false;
   try {
-    ok = await Promise.race([
-      fetchDataFromCloud(),
-      new Promise(r => setTimeout(() => r(false), 8000))
-    ]);
+    ok = await fetchDataFromCloud();
   } catch (_) { ok = false; }
   if (ok) renderAll();
   else updateSyncStatus('local');

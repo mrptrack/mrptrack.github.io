@@ -6,7 +6,7 @@ import { PROXY_URL } from './config.js';
 import { D } from './state.js';
 import { _authed } from './state.js';
 import { F, ttOpts, legOpts, gradFill, centerTextPlugin, crosshairPlugin, monthlyReturns } from './utils.js';
-import { saveAndSync } from './cloud.js';
+import { saveAndSync, _cloudReady } from './cloud.js';
 
 // ── Precio y FX en memoria (persisten en localStorage) ──────
 let P = {};
@@ -55,16 +55,24 @@ export function valEur(h) {
 export function getPriceData(ticker) { return P[ticker] || null; }
 
 // ── Fetch interno a través del GAS proxy ────────────────────
+async function fetchJson(url, timeout = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    return await response.json();
+  } finally { clearTimeout(timer); }
+}
 async function pFetch(u) {
-  const r = await fetch(`${PROXY_URL}?url=${encodeURIComponent(u)}`);
-  if (!r.ok) throw new Error('Proxy:' + r.status);
-  return r.json();
+  return fetchJson(`${PROXY_URL}?url=${encodeURIComponent(u)}`);
 }
 
 export async function fetchStock(tk) {
   const d = await pFetch(`https://query1.finance.yahoo.com/v8/finance/chart/${tk}?range=1d&interval=5m`);
   const result = d.chart.result[0], m = result.meta, q = result.indicators.quote[0];
   let price = m.regularMarketPrice, prev = m.chartPreviousClose || m.previousClose;
+  if (!Number.isFinite(price) || price <= 0) throw new Error('Invalid quote');
   let cls = q.close || [], his = (q.high || []).filter(v => v != null), los = (q.low || []).filter(v => v != null);
   if (['GBp', 'GBX', 'GBx'].includes(m.currency)) {
     price /= 100; prev /= 100;
@@ -104,36 +112,24 @@ async function fetchFundamentals(tickers) {
 }
 
 export async function fetchFx() {
-  // Primero: pares FX de Yahoo Finance via proxy (más actualizado)
+  // Fuentes ya usadas por la app. No esperar primero al v7 de Yahoo,
+  // que exige autorización y retrasa innecesariamente todas las cotizaciones.
   try {
-    const url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=USDEUR%3DX,CADEUR%3DX,GBPEUR%3DX,JPYEUR%3DX';
-    const data = await pFetch(url);
-    const found = {};
-    (data.quoteResponse?.result || []).forEach(q => { found[q.symbol] = q.regularMarketPrice; });
-    if (['USDEUR=X', 'CADEUR=X', 'GBPEUR=X', 'JPYEUR=X'].every(k => Number.isFinite(found[k]) && found[k] > 0)) {
-      FX.USD = found['USDEUR=X'];
-      FX.CAD = found['CADEUR=X'];
-      FX.GBP = found['GBPEUR=X'];
-      FX.JPY = found['JPYEUR=X'];
-      return;
-    }
-  } catch (e) { /* si el proxy falla, usa fuentes alternativas */ }
-  // Segundo: exchangerate-api.com (libre, sin clave)
-  try {
-    const d = await (await fetch('https://api.exchangerate-api.com/v4/latest/EUR')).json();
+    const d = await fetchJson('https://api.exchangerate-api.com/v4/latest/EUR', 6000);
     if (!['USD','CAD','GBP','JPY'].every(c => Number.isFinite(d.rates?.[c]) && d.rates[c] > 0)) throw new Error('Incomplete FX rates');
     for (const c of ['USD','CAD','GBP','JPY']) FX[c] = 1 / d.rates[c];
-    return;
+    return true;
   } catch (e) { /* fallback */ }
-  // Tercero: open.er-api.com
+  // Fuente alternativa si la primera no responde.
   try {
-    const d = await (await fetch('https://open.er-api.com/v6/latest/EUR')).json();
+    const d = await fetchJson('https://open.er-api.com/v6/latest/EUR', 6000);
     if (!['USD','CAD','GBP','JPY'].every(c => Number.isFinite(d.rates?.[c]) && d.rates[c] > 0)) throw new Error('Incomplete FX rates');
     for (const c of ['USD','CAD','GBP','JPY']) FX[c] = 1 / d.rates[c];
-    return;
+    return true;
   } catch (e) { /* noop */ }
   // Fallback estático (solo si todo lo anterior falla y no hay valor previo)
   if (!FX.USD) { FX.USD = 0.92; FX.CAD = 0.68; FX.GBP = 1.17; }
+  return false; // Mostrar parcial y no grabar un histórico con FX estimado.
 }
 
 // ── Actualización completa de precios ───────────────────────
@@ -141,20 +137,23 @@ export async function refreshPortfolio() {
   if (_refreshing) return;
   _refreshing = true;
   const dot = document.getElementById('dot'), tsE = document.getElementById('ts');
+  try {
   dot.style.background = 'var(--amber)';
   tsE.textContent = 'Updating...';
   if (Object.keys(P).length) renderPortfolio();
   else rSkeletons();
 
-  let fxOk = false;
-  try { await fetchFx(); fxOk = true; } catch (e) { /* noop */ }
+  const tickers = D.holdings.map(h => h.ticker);
+  const [fxOk, res] = await Promise.all([
+    fetchFx(),
+    Promise.allSettled(tickers.map(fetchStock))
+  ]);
   if (!FX.USD) { FX.USD = 0.86; FX.CAD = 0.63; FX.GBP = 1.17; }
 
-  const res = await Promise.allSettled(D.holdings.map(h => fetchStock(h.ticker)));
   let allOk = true;
   res.forEach((r, i) => {
-    if (r.status === 'fulfilled') P[D.holdings[i].ticker] = r.value;
-    else { if (P[D.holdings[i].ticker]) P[D.holdings[i].ticker]._stale = true; allOk = false; }
+    if (r.status === 'fulfilled') P[tickers[i]] = r.value;
+    else { if (P[tickers[i]]) P[tickers[i]]._stale = true; allOk = false; }
   });
 
   // Enriquecer con P/E, Dividend Yield y 52-semanas vía Yahoo v7 (batch)
@@ -188,7 +187,7 @@ export async function refreshPortfolio() {
   const _hasRealData = D.holdings.length > 0 || (D.cash || 0) > 0 || (D.totalInvested || 0) > 0 || (D.closedTrades || []).length > 0;
 
   // Snapshot diario (solo días laborables, zona Europe/Amsterdam)
-  if (allOk && fxOk && _hasRealData) {
+  if (allOk && fxOk && _hasRealData && _cloudReady) {
     const euNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
     const dow = euNow.getDay();
     if (dow !== 0 && dow !== 6) {
@@ -218,7 +217,11 @@ export async function refreshPortfolio() {
   dot.style.background = (allOk && fxOk) ? 'var(--green)' : 'var(--amber)';
   const now = new Date().toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   tsE.textContent = (allOk && fxOk) ? now : now + ' (Parcial)';
-  _refreshing = false;
+  } catch (error) {
+    console.warn('[portfolio] refresh:', error.message);
+    dot.style.background = 'var(--amber)';
+    tsE.textContent = 'Parcial';
+  } finally { _refreshing = false; }
 }
 
 // ── Render completo del portfolio ───────────────────────────
