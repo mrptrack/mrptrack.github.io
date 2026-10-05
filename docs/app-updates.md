@@ -13,4 +13,6 @@ La primera migración desde la versión antigua puede requerir cerrar y volver a
 
 Pruebas locales: `node tests/app-update.cjs`. Para servir localmente el sitio completo, hay que renderizar las cabeceras Jekyll de `index.html` y `sw.js`; abrirlos como archivos estáticos sin procesar no simula el despliegue de Pages.
 
+Comprobación de una publicación: el `<meta name="app-version">` del HTML y `CACHE_VERSION` en el `sw.js` publicado deben contener el mismo SHA de 40 caracteres. Incluso un push que solo cambie documentación genera una versión nueva. No se necesita acceder a la API de GitHub desde el móvil.
+
 Referencias: https://jekyll.github.io/github-metadata/configuration/ y https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/updateViaCache.
