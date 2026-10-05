@@ -1,10 +1,13 @@
+---
+layout: null
+---
 // ============================================================
 //  sw.js — Service Worker del Dashboard Personal
 //
 //  Estrategia de caché:
 //
 //  1. CACHE-FIRST   → assets estáticos (JS, CSS, HTML, fuentes)
-//     Si el recurso está en caché → sirve desde caché, actualiza en background.
+//     Una caché por publicación; no se modifica hasta el siguiente despliegue.
 //     Si NO está en caché → red → guarda en caché → responde.
 //
 //  2. NETWORK-FIRST → llamadas a la API (GAS / script.google.com)
@@ -14,7 +17,9 @@
 //
 // ============================================================
 
-const CACHE_VERSION = 'mrp-v6-refresh'; const APP_BASE = new URL('./', self.location.href);
+// GitHub Pages/Jekyll injects the published commit on EVERY deployment.
+const CACHE_VERSION = '{{ site.github.build_revision }}';
+const APP_BASE = new URL('./', self.location.href);
 
 // Nombres de cada caché por tipo
 const CACHE_STATIC = 'trackmrp-static-' + CACHE_VERSION;
@@ -26,6 +31,7 @@ const PRECACHE_URLS = [
   new URL('index.html', APP_BASE).href,
   new URL('css/styles.css', APP_BASE).href,
   new URL('js/app.js', APP_BASE).href,
+  new URL('js/app-update.js', APP_BASE).href,
   new URL('js/config.js', APP_BASE).href,
   new URL('js/state.js', APP_BASE).href,
   new URL('js/utils.js', APP_BASE).href,
@@ -66,39 +72,46 @@ const API_HOSTS = [
 
 // ── Install: precachear el shell de la app ──────────────────
 self.addEventListener('install', event => {
-  // Precaching resiliente: ignorar recursos que fallen (p. ej. iconos faltantes)
   event.waitUntil((async () => {
+    if (!/^[a-f0-9]{40}$/.test(CACHE_VERSION)) throw new Error('Missing deployment revision');
     const cache = await caches.open(CACHE_STATIC);
-    for (const url of PRECACHE_URLS) {
+    const results = await Promise.allSettled([...new Set(PRECACHE_URLS)].map(async url => {
+      const local = new URL(url).origin === APP_BASE.origin;
+      const fresh = new URL(url);
+      if (local) fresh.searchParams.set('release', CACHE_VERSION);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
       try {
-        const res = await fetch(url, { cache: 'no-cache' });
-        if (res && res.ok) {
-          await cache.put(url, res.clone());
-        } else {
-          console.warn('sw: precache failed for', url, res && res.status);
+        const res = await fetch(fresh.href, { cache: 'no-store', signal: controller.signal });
+        if (!res.ok) throw new Error('Incomplete release: ' + url);
+        if (local && (url === APP_BASE.href || url === new URL('index.html', APP_BASE).href)) {
+          const html = await res.clone().text();
+          if (!html.includes('content="' + CACHE_VERSION + '"')) throw new Error('Deployment not ready');
         }
+        await cache.put(url, res);
       } catch (e) {
-        console.warn('sw: precache error for', url, e && e.message);
-      }
+        if (local) throw e;
+      } finally { clearTimeout(timer); }
+    }));
+    if (results.some(r => r.status === 'rejected')) {
+      await caches.delete(CACHE_STATIC);
+      throw new Error('New app version is incomplete; retaining previous version');
     }
+    await self.skipWaiting();
   })());
-  // Activar inmediatamente sin esperar a que cierren pestañas anteriores
-  self.skipWaiting();
 });
 
 // ── Activate: eliminar cachés de versiones anteriores ───────
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(k => k.startsWith('trackmrp-') && k !== CACHE_STATIC && k !== CACHE_API)
-          .map(k => caches.delete(k))
-      )
-    )
-  );
-  // Tomar control de todas las pestañas abiertas
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => (k.startsWith('trackmrp-static-') || k.startsWith('trackmrp-api-')) && k !== CACHE_STATIC && k !== CACHE_API).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('message', event => {
+  if (event.data?.type === 'APP_VERSION') event.source?.postMessage({ type: 'APP_VERSION', version: CACHE_VERSION });
 });
 
 // ── Fetch: enrutador de estrategias ─────────────────────────

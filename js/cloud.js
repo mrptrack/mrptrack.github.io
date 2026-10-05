@@ -114,8 +114,20 @@ export async function fetchDataFromCloud() {
   return await _loadFromGAS();
 }
 
+let pendingCloudWrites = 0;
+let cloudWriteSequence = 0;
+let unconfirmedCloudChanges = false;
+// Used only by the app updater: never reload across an in-flight/failed save.
+export function hasPendingCloudChanges() { return pendingCloudWrites > 0 || unconfirmedCloudChanges; }
 export async function pushDataToCloud() {
-  return await _saveToGAS();
+  const sequence = ++cloudWriteSequence;
+  pendingCloudWrites++;
+  unconfirmedCloudChanges = true;
+  try {
+    const ok = await _saveToGAS();
+    if (ok && pendingCloudWrites === 1 && sequence === cloudWriteSequence) unconfirmedCloudChanges = false;
+    return ok;
+  } finally { pendingCloudWrites--; }
 }
 
 // Guarda localmente y envia a la nube
