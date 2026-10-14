@@ -22,6 +22,22 @@ const SECTOR_COLORS = {
   Other: '#667788'
 };
 
+// Free-text sectors get distinct colours rather than sharing the grey fallback.
+export function sectorColors(labels) {
+  const palette = ['#5588ff','#22df8a','#ffaa22','#aa66ff','#ff6688','#22dddd','#ff8844','#88bbff','#ffdd44','#667788','#cc88ff','#aadd66'];
+  const assigned = new Map(), used = new Set();
+  for (const label of [...labels].sort()) {
+    const known = SECTOR_COLORS[label];
+    if (known && !used.has(known)) { assigned.set(label, known); used.add(known); }
+  }
+  for (const label of [...labels].sort()) {
+    if (assigned.has(label)) continue;
+    const color = palette.find(c => !used.has(c)) || `hsl(${(assigned.size * 137.508) % 360} 70% 62%)`;
+    assigned.set(label, color); used.add(color);
+  }
+  return labels.map(label => assigned.get(label));
+}
+
 // ── Render principal de la pestaña Analytics ─────────────────
 export function renderAnalytics() {
   _renderSummaryCards();
@@ -78,7 +94,7 @@ function _renderSectorChart() {
 
   const sectors = {};
   D.holdings.forEach(h => {
-    const s = h.sector || 'Other';
+    const s = h.sector?.trim() || 'Other';
     sectors[s] = (sectors[s] || 0) + valEur(h);
   });
 
@@ -86,7 +102,7 @@ function _renderSectorChart() {
 
   const labels = Object.keys(sectors);
   const data = Object.values(sectors);
-  const colors = labels.map(l => SECTOR_COLORS[l] || SECTOR_COLORS.Other);
+  const colors = sectorColors(labels);
   const total = data.reduce((a, b) => a + b, 0);
 
   if (CH.sector) CH.sector.destroy();

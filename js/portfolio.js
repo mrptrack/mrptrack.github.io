@@ -552,9 +552,9 @@ function renderMonthlyTable() {
     const last = m.entries[m.entries.length - 1];
     const fullIdx = mList.indexOf(m);
     const prevMonth = fullIdx < mList.length - 1 ? mList[fullIdx + 1] : null;
-    const startVal = prevMonth ? prevMonth.entries[prevMonth.entries.length - 1].totalValue : m.entries[0].totalValue;
-    const endVal = last.totalValue;
     const t = twr[m.key] || { ret: 0, pnl: 0 };
+    const startVal = t.start ?? (prevMonth ? prevMonth.entries[prevMonth.entries.length - 1].totalValue : m.entries[0].totalValue);
+    const endVal = last.totalValue;
     const totalRet = last.totalInvested > 0 ? ((endVal - last.totalInvested) / last.totalInvested) * 100 : 0;
     const pos = t.pnl >= 0, rPos = t.ret >= 0, tPos = totalRet >= 0;
     const [y, mo] = m.key.split('-');

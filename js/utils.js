@@ -27,9 +27,19 @@ export function ratingColor(r, max = 10) {
 //           para CAGR y volatilidad, donde componer bien sí importa.
 // En ambos casos las aportaciones se excluyen: ingresar dinero no es ganarlo.
 export function monthlyReturns(history) {
-  if (!history || history.length < 2) return [];
+  if (!history || !history.length) return [];
   const s = [...history].sort((a, b) => a.date.localeCompare(b.date));
   const months = {};
+  // Include the result already present in the first snapshot. Opening capital
+  // is the invested savings (EUR 2,180 in September), not an already reduced value.
+  const first = s[0], initialCapital = first.totalInvested;
+  if (initialCapital > 0) {
+    months[first.date.substring(0, 7)] = {
+      growth: first.totalValue / initialCapital,
+      pnl: first.totalValue - initialCapital,
+      start: initialCapital
+    };
+  }
   for (let i = 1; i < s.length; i++) {
     const prev = s[i - 1], cur = s[i];
     const flow = (cur.totalInvested || 0) - (prev.totalInvested || 0);

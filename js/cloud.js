@@ -58,7 +58,11 @@ async function _loadFromGAS() {
         updateSyncStatus('local');
         return false;
       }
-      loadDataFromObj(j, true); saveLocal(); _cloudReady = true; updateSyncStatus('ok'); return true;
+      const repaired = loadDataFromObj(j, true);
+      saveLocal(); _cloudReady = true; updateSyncStatus('ok');
+      // Persist the requested correction before the daily snapshot can write.
+      if (repaired) await pushDataToCloud();
+      return true;
     }
     return false;
   } catch (e) {
@@ -80,11 +84,13 @@ async function _saveToGAS() {
     console.warn('[cloud] _saveToGAS abortado: D está en estado FALLBACK. No se sobreescribe cloud.');
     return false;
   }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
   try {
     const payload = JSON.stringify({ session_token: token, data: JSON.stringify(buildDataObj()) });
     const res = await fetch(PROXY_URL, {
       method: 'POST', redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain' }, body: payload
+      headers: { 'Content-Type': 'text/plain' }, body: payload, signal: controller.signal
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
@@ -107,7 +113,7 @@ async function _saveToGAS() {
   } catch (e) {
     console.warn('[GAS] _saveToGAS:', e.message);
     toast('Sync failed', 'err'); updateSyncStatus('err'); return false;
-  }
+  } finally { clearTimeout(timeout); }
 }
 
 export async function fetchDataFromCloud() {

@@ -44,13 +44,26 @@ export function _mergeHistory(local, remote) {
 }
 
 // Hidrata el objeto D desde un objeto fuente (localStorage o GAS)
+// User-confirmed correction, limited to the malformed snapshot.
+export function repairHistory(history) {
+  if (!history.some(h => h.date === '2026-09-22' && h.totalInvested === 0)) return history;
+  return history.map(h => h.date === '2026-09-22' && h.totalInvested === 0 ? { ...h, totalInvested: 2180 } : h);
+}
+
 export function loadDataFromObj(obj, merge) {
   D.holdings     = _migrateDivs(obj.holdings     || FALLBACK.holdings);
   D.cash         = obj.cash         ?? FALLBACK.cash;
   D.totalInvested = obj.totalInvested ?? FALLBACK.totalInvested;
   D.closedTrades  = _migrateDivs(obj.closedTrades || FALLBACK.closedTrades);
-  if (merge) D.history = _mergeHistory(D.history, obj.history || []);
-  else        D.history = obj.history || FALLBACK.history || [];
+  const history = obj.history || FALLBACK.history || [];
+  const repaired = repairHistory(history);
+  if (repaired !== history) {
+    try {
+      const key = 'trackmrp_history_2026-09-22_before_fix';
+      if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(history.find(h => h.date === '2026-09-22')));
+    } catch (_) { /* storage unavailable; correction still applies */ }
+  }
+  D.history = repairHistory(merge ? _mergeHistory(D.history, repaired) : repaired);
   D.gym       = obj.gym       || FALLBACK.gym;
   D.books     = obj.books     || FALLBACK.books;
   D.movies    = obj.movies    || FALLBACK.movies;
@@ -59,6 +72,7 @@ export function loadDataFromObj(obj, merge) {
   D.watchlist = obj.watchlist || FALLBACK.watchlist;
   Object.assign(D, lifeDefaults(obj, D));
   document.dispatchEvent(new Event('data-loaded'));
+  return repaired !== history;
 }
 
 // Serializa D a un objeto plano para guardar/enviar
