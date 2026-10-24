@@ -8,6 +8,16 @@ const DAY = 86400000;
 let cache;
 const pending = new Map();
 const networkQueues=new Map();
+// Reviewed cover bundled with the app, including for a previously cached no-match.
+function bundledCover(kind,item) {
+  if(kind!=='game'||!artworkTitles(item).some(title=>title.trim().toLowerCase()==='hades'))return null;
+  return {path:'icons/covers/hades.jpg',artwork:{provider:'wikipedia',title:'Hades (video game)',year:2020,
+    url:'https://upload.wikimedia.org/wikipedia/en/c/cc/Hades_cover_art.jpg',sourceUrl:'https://en.wikipedia.org/wiki/Hades_(video_game)'}};
+}
+function coverImageUrl(kind,item,art) {
+  const bundled=bundledCover(kind,item);
+  return bundled&&art.url===bundled.artwork.url?bundled.path:art.url;
+}
 function readCache() {
   if (cache) return cache;
   try { cache = JSON.parse(localStorage.getItem(CACHE_KEY)) || {}; } catch { cache = {}; }
@@ -22,7 +32,9 @@ function remember(key, value) {
 }
 export function cachedArtwork(kind, item) {
   if (item.artwork === false) return null;
-  if (item.artwork && validArtwork(item.artwork) && (!item.artwork.automatic || item.artwork.lookupKey===artworkKey(kind,item))) return item.artwork;
+  if (item.artwork && validArtwork(item.artwork) && !item.artwork.automatic) return item.artwork;
+  const bundled=bundledCover(kind,item);if(bundled)return bundled.artwork;
+  if (item.artwork?.automatic && validArtwork(item.artwork) && item.artwork.lookupKey===artworkKey(kind,item)) return item.artwork;
   const entry = readCache()[artworkKey(kind,item)];
   return entry && Date.now()-entry.at < (entry.value ? 30 : 1)*DAY && validArtwork(entry.value) ? entry.value : undefined;
 }
@@ -149,7 +161,7 @@ export function resolveArtwork(kind,item) {
 export function coverMarkup(kind, item) {
   const art = cachedArtwork(kind,item);
   const initials = artworkTitles(item)[0]?.split(/\s+/).slice(0,2).map(x => x[0]).join('') || '—';
-  return `<span class="cover-placeholder" aria-hidden="true"><span>${esc(initials)}</span><small>${esc(t(art===null?'No cover':'Cover'))}</small></span>${art ? `<img class="library-cover" src="${esc(art.url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}`;
+  return `<span class="cover-placeholder" aria-hidden="true"><span>${esc(initials)}</span><small>${esc(t(art===null?'No cover':'Cover'))}</small></span>${art ? `<img class="library-cover" src="${esc(coverImageUrl(kind,item,art))}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}`;
 }
 const imageFallbacks=new Map();
 function imageFallback(kind,item) {
@@ -174,7 +186,7 @@ function paintArtwork(node,kind,item,art,onChange) {
   };
   const loaded=()=>{node.dataset.coverState='ready';persistArtwork(kind,item,art);};
   img.onerror=failed;img.onload=loaded;
-  if(added){img.src=art.url;node.append(img);}
+  if(added){img.src=coverImageUrl(kind,item,art);node.append(img);}
   else if(img.complete&&img.naturalWidth)loaded();
   onChange?.(art);
 }
