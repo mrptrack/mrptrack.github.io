@@ -24,6 +24,7 @@ export function validateLife(obj) {
   if(obj.schemaVersion!=null && (!Number.isInteger(obj.schemaVersion) || obj.schemaVersion>2 || obj.schemaVersion<1)) errors.push('Unsupported schema version');
   if(obj.preferences!=null && (!record(obj.preferences) || !['es','en'].includes(obj.preferences.language) || !['dark','light'].includes(obj.preferences.theme))) errors.push('Invalid preferences');
   for(const k of ['workouts','activities']) if(obj[k]!=null && !Array.isArray(obj[k])) errors.push('Invalid '+k);
+  if(obj.dashboardExtras!=null){const e=obj.dashboardExtras;if(!record(e)||JSON.stringify(e).length>2000000||e.favorites!=null&&(!Array.isArray(e.favorites)||e.favorites.some(x=>typeof x!=='string'))||['progress','watchNotes'].some(k=>e[k]!=null&&!record(e[k]))||e.templates!=null&&!Array.isArray(e.templates))errors.push('Invalid dashboard preferences');}
   const activities = Array.isArray(obj.activities) ? obj.activities : DEFAULT_ACTIVITIES;
   const ids=new Set();
   activities.forEach(a=>{
@@ -47,6 +48,7 @@ export function validateLife(obj) {
 }
 export function lifeDefaults(obj, previous={}) {
   return {schemaVersion:2,
+    dashboardExtras:obj.dashboardExtras ?? previous.dashboardExtras ?? {favorites:[],progress:{},watchNotes:{},templates:[]},
     trainingInitialized:obj.trainingInitialized ?? previous.trainingInitialized ?? false,
     preferences:obj.preferences ?? previous.preferences ?? {language:'es',theme:'dark'},
     workouts:obj.workouts ?? previous.workouts ?? [],

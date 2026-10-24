@@ -1,0 +1,8 @@
+body.new-layout-active{overflow:hidden}
+body.new-layout-active>.wrap,body.new-layout-active>.bg-mesh,body.new-layout-active>.scanline,body.new-layout-active>.skip-link{display:none}
+#dashboardNewView{position:fixed;inset:0;width:100%;height:100%;height:100dvh;border:0;z-index:1000;background:var(--bg)}
+#dashboardNewView[hidden]{display:none}
+/* Cover private contents with the existing authentication screen on sign-out. */
+#loginOv{z-index:9000}
+
+#dashboardOriginalPanel{position:fixed;inset:0;z-index:70;overflow:auto;background:var(--bg);padding:24px max(20px,calc((100vw - 1320px)/2)) 50px}#dashboardOriginalPanel>.tab-content{display:block}.native-panel-toolbar{display:flex;gap:10px;margin-bottom:25px;position:sticky;top:0;z-index:1;padding:8px 0;background:var(--bg)}

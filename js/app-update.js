@@ -5,6 +5,8 @@ import { hasPendingCloudChanges } from './cloud.js';
 export function canReloadApp() {
   return document.visibilityState === 'visible' && navigator.onLine !== false
     && !hasPendingCloudChanges()
+    && !window.TrackDashboardUI?.busy
+    && !document.getElementById('dashboardNewView')?.contentDocument?.querySelector('dialog[open], input:focus, textarea:focus, select:focus')
     && !document.body.classList.contains('edit-mode')
     && !document.querySelector('#ov.open')
     && !document.activeElement?.matches('input,textarea,select,[contenteditable="true"]')

@@ -26,7 +26,7 @@ import { renderWatchlist } from './watchlist.js';
 import { renderGames } from './games.js';
 import { validateGame } from './game-schema.js';
 const CURRENCIES = ['EUR', 'USD', 'CAD', 'GBP', 'JPY'];
-const KNOWN_KEYS = ['holdings', 'cash', 'totalInvested', 'closedTrades', 'history',
+const KNOWN_KEYS = ['dashboardExtras','holdings', 'cash', 'totalInvested', 'closedTrades', 'history',
   'gym', 'books', 'movies', 'series', 'watchlist', 'games', 'schemaVersion', 'preferences', 'workouts', 'activities', 'trainingInitialized'];
 
 // ── Validación de esquema (pura, testeable desde consola) ────

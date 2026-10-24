@@ -25,8 +25,8 @@ export function renderBooks() {
     'pages-desc':(a,b)=>(b.pages||0)-(a.pages||0),'pages-asc':(a,b)=>(a.pages||9999)-(b.pages||9999),title:(a,b)=>a.title.localeCompare(b.title)};
   list.sort(sorts[sort]||sorts.default);
   const rated=D.books.filter(b=>b.myRating!=null),avg=rated.length?rated.reduce((s,b)=>s+b.myRating,0)/rated.length:0;
-  const pending=D.books.filter(b=>b.myRating==null).reduce((s,b)=>s+(b.pages||0),0),read=rated.reduce((s,b)=>s+(b.pages||0),0);
-  el('booksSummary').innerHTML=tile('Total',D.books.length)+tile('Read',`${rated.length}/${D.books.length}`)+tile('Pages read',F(read,0),F(pending,0)+' '+t('remaining'))+tile('Avg mine',(rated.length?F(avg,1):'—')+'/5');
+  const completed=D.books.filter(b=>b.libraryStatus?b.libraryStatus==='done':b.myRating!=null),pending=D.books.reduce((s,b)=>s+(completed.includes(b)?0:Math.max(0,(b.pages||0)-(b.currentPage||0))),0),read=D.books.reduce((s,b)=>s+(completed.includes(b)?b.pages||0:b.currentPage||0),0);
+  el('booksSummary').innerHTML=tile('Total',D.books.length)+tile('Read',`${completed.length}/${D.books.length}`)+tile('Pages read',F(read,0),F(pending,0)+' '+t('remaining'))+tile('Avg mine',(rated.length?F(avg,1):'—')+'/5');
   renderLibrary(el('booksGrid'),'book',list);
 }
 export function renderMovies() {
@@ -40,7 +40,7 @@ export function renderMovies() {
     'dur-desc':(a,b)=>_parseDurMin(b.duration)-_parseDurMin(a.duration),'dur-asc':(a,b)=>_parseDurMin(a.duration)-_parseDurMin(b.duration),title:(a,b)=>a.title.localeCompare(b.title)};
   list.sort(sorts[sort]||sorts.default);
   const rated=D.movies.filter(m=>m.myRating!=null),avg=rated.length?rated.reduce((s,m)=>s+m.myRating,0)/rated.length:0;
-  const watched=D.movies.filter(m=>m.myRating!=null||!!m.opinion?.trim()),pending=D.movies.filter(m=>!watched.includes(m));
+  const watched=D.movies.filter(m=>m.libraryStatus?m.libraryStatus==='done':m.myRating!=null||!!m.opinion?.trim()),pending=D.movies.filter(m=>!watched.includes(m));
   const hours=Math.round(watched.reduce((s,m)=>s+_parseDurMin(m.duration),0)/60),remaining=pending.reduce((s,m)=>s+_parseDurMin(m.duration),0)/60,missing=pending.filter(m=>!_parseDurMin(m.duration)).length;
   el('moviesSummary').innerHTML=tile('Total',D.movies.length)+tile('Watched',`${watched.length}/${D.movies.length}`)+tile('Hours watched',hours+'h',F(remaining,1)+'h '+t('remaining')+(missing?' · '+missing+' '+t('Unknown duration'):''))+tile('Avg mine',(rated.length?F(avg,1):'—')+'/10');
   renderLibrary(el('moviesGrid'),'movie',list);

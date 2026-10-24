@@ -1,4 +1,5 @@
 import {D,_authed,isFallbackState} from './state.js';
+import {getLayout,setLayout} from './layout-bridge.js';
 import {saveAndSync} from './cloud.js';
 import {language,t,initI18n,translateUI} from './i18n.js';
 const key=location.hostname==='mrptrack.github.io'||document.title.includes('MRP')?'trackmrp_preferences':'trackcmg_preferences';
@@ -19,8 +20,10 @@ export function initSettings(){
 }
 function openSettings(){
   const m=document.getElementById('mod');
-  m.innerHTML=`<h2>${t('Settings')}</h2><div class="game-fields"><div class="fg"><label for="settingTheme">${t('Theme')}</label><select id="settingTheme"><option value="dark">${t('Dark')}</option><option value="light">${t('Light')}</option></select></div><div class="fg"><label for="settingLanguage">${t('Language')}</label><select id="settingLanguage"><option value="es">Español</option><option value="en">English</option></select></div></div><div class="m-btns"><button class="btn btn-g" id="closeSettings">${t('Close')}</button></div>`;
+  m.innerHTML=`<h2>${t('Settings')}</h2><div class="game-fields"><div class="fg"><label for="settingLayout">${t('Design')}</label><select id="settingLayout"><option value="classic">${t('Classic')}</option><option value="new">${t('New')}</option></select></div><div class="fg"><label for="settingTheme">${t('Theme')}</label><select id="settingTheme"><option value="dark">${t('Dark')}</option><option value="light">${t('Light')}</option></select></div><div class="fg"><label for="settingLanguage">${t('Language')}</label><select id="settingLanguage"><option value="es">Español</option><option value="en">English</option></select></div></div><div class="m-btns"><button class="btn btn-g" id="closeSettings">${t('Close')}</button></div>`;
   document.getElementById('ov').classList.add('open');
+  document.getElementById('settingLayout').value=getLayout();
+  document.getElementById('settingLayout').onchange=e=>setLayout(e.target.value);
   document.getElementById('settingTheme').value=D.preferences.theme;
   document.getElementById('settingLanguage').value=language();
   for(const id of ['settingTheme','settingLanguage'])document.getElementById(id).onchange=()=>{

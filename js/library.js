@@ -15,11 +15,11 @@ export function libraryInfo(kind,item) {
   const max=kind==='book'?5:10, rating=item.myRating;
   let status,creator,subtitle,facts;
   if(kind==='book'){
-    status=rating!=null?'Read':'TBR'; creator=item.author;
+    status=(item.libraryStatus?item.libraryStatus==='done':rating!=null)?'Read':'TBR'; creator=item.author;
     subtitle=[item.year,item.pages?`${F(item.pages,0)} ${t('pages')}`:''];
     facts=[['Author',item.author],['Year',item.year],['Pages',item.pages],['Goodreads rating',item.grRating!=null?item.grRating+'/5':null]];
   }else if(kind==='movie'){
-    status=rating!=null||item.opinion?.trim()?'Watched':'Watchlist'; creator=item.director;
+    status=(item.libraryStatus?item.libraryStatus==='done':rating!=null||item.opinion?.trim())?'Watched':'Watchlist'; creator=item.director;
     subtitle=[item.year,item.duration];
     facts=[['Director',item.director],['Year',item.year],['Duration',item.duration],['Platform',item.platform],['Actors',item.actors],['Filmaffinity rating',item.faRating!=null?item.faRating+'/10':null]];
   }else if(kind==='serie'){

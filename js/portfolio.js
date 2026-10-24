@@ -249,7 +249,7 @@ function rHero() {
   let t = D.cash;
   D.holdings.forEach(h => { t += valEur(h); });
   document.getElementById('hVal').innerHTML = `${F(t)} &euro;`;
-  const inv = D.totalInvested, tRoi = t - inv, tPct = (tRoi / inv) * 100, tPos = tRoi >= 0;
+  const inv = D.totalInvested, tRoi = t - inv, tPct = inv > 0 ? (tRoi / inv) * 100 : 0, tPos = tRoi >= 0;
   document.getElementById('hRoi').innerHTML = `
     <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim);margin-bottom:6px">Invested: ${F(inv)} &euro;</div>
     <div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;margin-bottom:14px;color:var(--${tPos ? 'green' : 'red'})">ROI: ${tPos ? '+' : ''}${F(tPct)}% | ${tPos ? '+' : ''}${F(tRoi)} &euro;</div>`;
