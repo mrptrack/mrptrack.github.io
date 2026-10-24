@@ -34,6 +34,7 @@ layout: null
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700;800&display=swap"></noscript>
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/life.css">
+<link rel="stylesheet" href="css/library.css">
 </head>
 <body>
 <a class="skip-link" href="#tabBar">Skip to content</a>
@@ -63,14 +64,15 @@ layout: null
 <button class="tab-btn" data-tab="games">Games</button>
 </div>
 
-<div class="tab-content" id="tab-games">
+<div class="tab-content media-section" id="tab-games">
+<div class="library-heading"><div><h2>My game library</h2><p>Worlds explored, stories still to play.</p></div></div>
 <div class="sum-grid" id="gamesSummary"></div>
 <div class="filter-bar">
 <input id="gamesSearch" type="search" placeholder="Search title, developer, platform..." aria-label="Search games">
 <select id="gamesSort" aria-label="Sort games"><option value="default">Original order</option><option value="myRating">My rating (high)</option><option value="metacritic">Metacritic (high)</option><option value="playedYear">Played (newest)</option><option value="releaseYear">Release (newest)</option><option value="hours">Hours (most)</option><option value="title">Title A-Z</option></select>
 <select id="gamesFilter" aria-label="Game status"><option value="all">All</option><option value="Playing">Playing</option><option value="Completed">Completed</option><option value="Paused">Paused</option><option value="Dropped">Dropped</option><option value="Backlog">Backlog</option></select>
 <button class="btn btn-sm btn-g add-section" id="btnAddGame">+ Add</button></div>
-<div class="media-grid" id="gamesGrid"></div></div>
+<div class="media-grid" id="gamesGrid"></div><p class="library-credit">Artwork: <a href="https://en.wikipedia.org" target="_blank" rel="noopener noreferrer">Wikipedia</a>. <span>Covers belong to their respective owners.</span></p></div>
 <div class="tab-content active" id="tab-portfolio">
 <div class="hero"><div class="hero-lbl">Portfolio Value</div><div class="hero-val" id="hVal">---,-- &euro;</div><div id="hRoi"></div></div>
 <div id="portfolioEditWrap" class="add-section" style="justify-content:flex-end;margin-bottom:16px;gap:8px"><button class="btn btn-sm btn-g" id="btnAddHolding">+ Add Position</button></div>
@@ -111,34 +113,40 @@ layout: null
 </section>
 </div>
 
-<div class="tab-content" id="tab-books">
+<div class="tab-content media-section" id="tab-books">
+<div class="library-heading"><div><h2>My bookshelf</h2><p>Ideas worth keeping. Pages still to turn.</p></div></div>
 <div class="sum-grid" id="booksSummary"></div>
 <div class="filter-bar"><input type="text" id="booksSearch" placeholder="Search title, author...">
 <select id="booksSort"><option value="default">Original order</option><option value="rating-desc">My rating (high)</option><option value="gr-desc">Goodreads (high)</option><option value="pages-desc">Pages (most)</option><option value="pages-asc">Pages (fewest)</option><option value="title">Title A-Z</option></select>
 <select id="booksFilter"><option value="all">All</option><option value="rated">Rated</option><option value="unrated">Not rated</option></select>
 <button class="btn btn-sm btn-g add-section" id="btnAddBook">+ Add</button></div>
-<div class="card taste-card" id="booksInsights" style="display:none"></div>
+<details class="library-insights"><summary>Taste Profile</summary><div class="card taste-card" id="booksInsights" style="display:none"></div></details>
 <div class="media-grid" id="booksGrid"></div>
+<p class="library-credit">Artwork: <a href="https://openlibrary.org" target="_blank" rel="noopener noreferrer">Open Library</a> · <a href="https://en.wikipedia.org" target="_blank" rel="noopener noreferrer">Wikipedia</a>. <span>Covers belong to their respective owners.</span></p>
 </div>
 
-<div class="tab-content" id="tab-movies">
+<div class="tab-content media-section" id="tab-movies">
+<div class="library-heading"><div><h2>My film collection</h2><p>Great cinema, personal favourites and the next watch.</p></div></div>
 <div class="sum-grid" id="moviesSummary"></div>
 <div class="filter-bar"><input type="text" id="moviesSearch" placeholder="Search title, director, actor...">
 <select id="moviesSort"><option value="default">Original order</option><option value="fa-desc">Filmaffinity (high)</option><option value="my-desc">My rating (high)</option><option value="year-desc">Year (newest)</option><option value="year-asc">Year (oldest)</option><option value="dur-desc">Duration (longest)</option><option value="dur-asc">Duration (shortest)</option><option value="title">Title A-Z</option></select>
 <select id="moviesFilter"><option value="all">All</option><option value="rated">Rated</option><option value="unrated">Not rated</option></select>
 <button class="btn btn-sm btn-g add-section" id="btnAddMovie">+ Add</button></div>
-<div class="card taste-card" id="moviesInsights" style="display:none"></div>
+<details class="library-insights"><summary>Taste Profile</summary><div class="card taste-card" id="moviesInsights" style="display:none"></div></details>
 <div class="media-grid" id="moviesGrid"></div>
+<p class="library-credit">Artwork: <a href="https://en.wikipedia.org" target="_blank" rel="noopener noreferrer">Wikipedia</a>. <span>Covers belong to their respective owners.</span></p>
 </div>
 
-<div class="tab-content" id="tab-series">
+<div class="tab-content media-section" id="tab-series">
+<div class="library-heading"><div><h2>My series collection</h2><p>One more episode. Or a whole new story.</p></div></div>
 <div class="sum-grid" id="seriesSummary"></div>
 <div class="filter-bar"><input type="text" id="seriesSearch" placeholder="Search title, platform...">
 <select id="seriesSort"><option value="default">Original order</option><option value="rating-desc">My rating (high)</option><option value="imdb-desc">IMDB (high)</option><option value="title">Title A-Z</option></select>
 <select id="seriesFilter"><option value="all">All</option><option value="finished">Finished</option><option value="watching">Want to finish</option><option value="dropped">Dropped</option><option value="notstarted">Not started</option></select>
 <button class="btn btn-sm btn-g add-section" id="btnAddSeries">+ Add</button></div>
-<div class="card taste-card" id="seriesInsights" style="display:none"></div>
+<details class="library-insights"><summary>Taste Profile</summary><div class="card taste-card" id="seriesInsights" style="display:none"></div></details>
 <div class="media-grid" id="seriesGrid"></div>
+<p class="library-credit">Artwork: <a href="https://www.tvmaze.com/api" target="_blank" rel="noopener noreferrer">TVmaze (CC BY-SA)</a> · <a href="https://en.wikipedia.org" target="_blank" rel="noopener noreferrer">Wikipedia</a>. <span>Covers belong to their respective owners.</span></p>
 
 </div>
 

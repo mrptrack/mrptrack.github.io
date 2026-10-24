@@ -24,6 +24,9 @@ const APP_BASE = new URL('./', self.location.href);
 // Nombres de cada caché por tipo
 const CACHE_STATIC = 'trackmrp-static-' + CACHE_VERSION;
 const CACHE_API    = 'trackmrp-api-'    + CACHE_VERSION;
+// Public thumbnails only; survives deployments, independent of app and data caches.
+const CACHE_ARTWORK = 'trackmrp-artwork-v1';
+const ARTWORK_HOSTS=['covers.openlibrary.org','upload.wikimedia.org','thumb.wikimedia.org','static.tvmaze.com'];
 
 // Assets precargados en install (shell de la app)
 const PRECACHE_URLS = [
@@ -48,6 +51,11 @@ const PRECACHE_URLS = [
   new URL('js/training.js', APP_BASE).href,
   new URL('js/media-editor.js', APP_BASE).href,
   new URL('css/life.css', APP_BASE).href,
+  new URL('css/library.css', APP_BASE).href,
+  new URL('js/library.js', APP_BASE).href,
+  new URL('js/artwork.js', APP_BASE).href,
+  new URL('js/artwork-model.js', APP_BASE).href,
+  new URL('js/artwork-store.js', APP_BASE).href,
   new URL('js/game-schema.js', APP_BASE).href,
   new URL('js/modals.js', APP_BASE).href,
   new URL('js/auth.js', APP_BASE).href,
@@ -125,6 +133,12 @@ self.addEventListener('fetch', event => {
   // Ignorar peticiones chrome-extension o no-http
   if (!request.url.startsWith('http')) return;
 
+  if(request.destination==='image'&&url.protocol==='https:'&&ARTWORK_HOSTS.includes(url.hostname)){
+    event.respondWith(artworkImage(request));return;
+  }
+  // Search responses must never enter the app-shell cache.
+  if (['en.wikipedia.org','es.wikipedia.org','openlibrary.org','covers.openlibrary.org','upload.wikimedia.org','thumb.wikimedia.org','api.tvmaze.com','static.tvmaze.com'].includes(url.hostname)) return;
+
   // ── Network-First para APIs (GAS, fuentes de Google)
   if (API_HOSTS.some(h => url.hostname.includes(h))) {
     event.respondWith(networkFirst(request));
@@ -134,6 +148,20 @@ self.addEventListener('fetch', event => {
   // ── Cache-First para todo lo demás (assets estáticos)
   event.respondWith(cacheFirst(request));
 });
+
+async function artworkImage(request){
+  const cache=await caches.open(CACHE_ARTWORK),cached=await cache.match(request);
+  if(cached)return cached;
+  let response;
+  try{response=await fetch(request,{mode:'cors',credentials:'omit'});}catch{return fetch(request);}
+  if(response.ok&&response.type!=='opaque'&&response.headers.get('Content-Type')?.startsWith('image/')){
+    try{
+      await cache.put(request,response.clone());
+      const keys=await cache.keys();for(const key of keys.slice(0,Math.max(0,keys.length-240)))await cache.delete(key);
+    }catch{/* Storage pressure must never evict dashboard data or break a poster. */}
+  }
+  return response;
+}
 
 // ── Estrategia Cache-First ───────────────────────────────────
 // Responde desde caché si existe; si no, va a red y cachea la respuesta.

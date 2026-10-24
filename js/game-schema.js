@@ -1,7 +1,9 @@
+import {validArtwork} from './artwork-model.js';
 export const GAME_STATUSES = ['Backlog', 'Playing', 'Completed', 'Paused', 'Dropped'];
 
 export function validateGame(g) {
   if (!g || typeof g !== 'object' || Array.isArray(g)) return 'Invalid game';
+  if (!validArtwork(g.artwork)) return 'Invalid artwork';
   if (typeof g.title !== 'string' || !g.title.trim()) return 'Title is required';
   for (const k of ['platform', 'developer', 'opinion']) {
     if (g[k] != null && typeof g[k] !== 'string') return k + ' must be text';

@@ -5,12 +5,12 @@ const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(process.argv[2] || path.join(__dirname, '..'));
 const D = {preferences:{language:'es',theme:'dark'},workouts:[],activities:[]};
-const context = vm.createContext({D, _authed:true, structuredClone, console});
+const context = vm.createContext({D, _authed:true, structuredClone, console, URL});
 function source(file) {
   return fs.readFileSync(path.join(root,'js',file),'utf8')
     .replace(/^import .*;\r?\n/gm,'').replace(/^export /gm,'');
 }
-vm.runInContext(source('life-schema.js')+'\n'+source('i18n.js')+'\n'+source('training.js'),context);
+vm.runInContext(source('artwork-model.js')+'\n'+source('life-schema.js')+'\n'+source('i18n.js')+'\n'+source('training.js'),context);
 const {validateLife,trainingStats,muscleSets,lifeDefaults,t} = vm.runInContext('({validateLife,trainingStats,muscleSets,lifeDefaults,t})',context);
 const legacy={id:'legacy',date:'2026-01-05',mode:'gym',muscles:['chest','lowerBack']};
 const session={...legacy,id:'new',sets:{chest:12,lowerBack:4}};

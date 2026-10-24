@@ -3,8 +3,9 @@ import {saveAndSync} from './cloud.js';
 import {esc} from './life-schema.js';
 import {t,mediaTitle} from './i18n.js';
 import {renderBooks,renderMovies,renderSeries} from './media.js';
+import {artworkEditor} from './artwork.js';
 const definitions={
-book:{key:'books',label:'Book',render:renderBooks,fields:[['author','Author'],['year','Year','number',0,3000],['pages','Pages','number',0,100000],['grRating','Goodreads rating','number',0,5],['myRating','My rating (0-5)','number',0,5]]},
+book:{key:'books',label:'Book',render:renderBooks,fields:[['author','Author'],['year','Year'],['pages','Pages','number',0,100000],['grRating','Goodreads rating','number',0,5],['myRating','My rating (0-5)','number',0,5]]},
 movie:{key:'movies',label:'Movie',render:renderMovies,fields:[['director','Director'],['year','Year','number',1800,3000],['duration','Duration'],['platform','Platform'],['actors','Actors'],['faRating','Filmaffinity rating','number',0,10],['myRating','My rating (0-10)','number',0,10]]},
 serie:{key:'series',label:'Series',render:renderSeries,fields:[['years','Years'],['seasons','Seasons','number',0,500],['epsPerSeason','Episodes per season'],['epLength','Ep length'],['platform','Platform'],['watched','Watched'],['imdbRating','IMDB rating','number',0,10],['myRating','My rating (0-10)','number',0,10]]}
 };
@@ -20,6 +21,7 @@ export function openMediaModal(type,idx=null){
     <div class="m-btns">${idx==null?'':'<button type="button" class="btn btn-r" id="mediaDelete">'+t('Delete')+'</button>'}<button type="button" class="btn" id="mediaCancel">${t('Cancel')}</button><button type="submit" class="btn btn-g">${t('Save')}</button></div></form>`;
   const close=()=>document.getElementById('ov').classList.remove('open');
   document.getElementById('ov').classList.add('open');
+  const saveArtwork=artworkEditor(document.getElementById('mediaForm'),type,old,()=>({...old,title:document.getElementById('mediaTitle-es').value,translations:{es:{title:document.getElementById('mediaTitle-es').value},en:{title:document.getElementById('mediaTitle-en').value}},author:document.getElementById('media-author')?.value,year:document.getElementById('media-year')?.value,years:document.getElementById('media-years')?.value}));
   if(type==='serie')document.getElementById('mediaWant').value=old.wantFinish==='Sí'?'Yes':old.wantFinish==='Volver a verla'?'Rewatch':old.wantFinish||'';
   document.getElementById('mediaCancel').onclick=close;
   if(idx!=null)document.getElementById('mediaDelete').onclick=()=>{if(_authed&&confirm(t('Delete this item?'))){D[def.key].splice(idx,1);close();def.render();saveAndSync();}};
@@ -31,6 +33,7 @@ export function openMediaModal(type,idx=null){
     if(!es||!en)return;
     item.title=es;item.translations={...old.translations,es:{...old.translations?.es,title:es},en:{...old.translations?.en,title:en}};
     item.opinion=fd.get('opinion');
+    saveArtwork(item);
     if(type==='serie')item.wantFinish=fd.get('wantFinish');
     if(idx==null)D[def.key].push(item);else D[def.key][idx]=item;
     close();def.render();saveAndSync();

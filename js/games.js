@@ -1,8 +1,10 @@
 import { mediaTitle, t } from './i18n.js';
 import { D, _authed } from './state.js';
 import { saveAndSync } from './cloud.js';
-import { F, ratingColor } from './utils.js';
+import { F } from './utils.js';
 import { GAME_STATUSES, validateGame } from './game-schema.js';
+import { renderLibrary } from './library.js';
+import { artworkEditor } from './artwork.js';
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const el = id => document.getElementById(id);
@@ -24,13 +26,7 @@ export function renderGames() {
     ['Hours played', F(games.reduce((s, g) => s + (g.hours || 0), 0), 1) + 'h'],
     ['Avg mine', rated.length ? F(rated.reduce((s, g) => s + g.myRating, 0) / rated.length, 1) + '/10' : '—']];
   el('gamesSummary').innerHTML = stats.map(([label, value]) => `<div class="sum-card"><div class="sum-lbl">${label}</div><div class="sum-val">${value}</div></div>`).join('');
-  el('gamesGrid').innerHTML = list.map(g => {
-    const meta = [g.platform, g.developer, g.releaseYear ? 'Released ' + g.releaseYear : '', g.playedYear ? 'Played ' + g.playedYear : '', g.hours != null ? F(g.hours, 1) + 'h' : '', g.metacritic != null ? 'Metacritic: ' + g.metacritic + '/100' : ''].filter(Boolean);
-    return `<div class="m-card" ${_authed ? `data-edit-type="game" data-edit-idx="${g.i}"` : ''}>
-      <div class="m-card-top"><div class="m-card-title">${esc(mediaTitle(g))}</div><div class="m-card-rating" style="color:${g.myRating == null ? 'var(--text-muted)' : ratingColor(g.myRating, 10)}">${g.myRating == null ? '—' : g.myRating + '/10'}</div></div>
-      <div class="m-card-meta">${esc(t(g.status || 'Backlog'))}${meta.length ? ' · ' + meta.map(x=>esc(t(x))).join(' · ') : ''}</div>
-      ${g.opinion ? `<div class="m-card-opinion">${esc(g.opinion)}</div>` : ''}</div>`;
-  }).join('') || '<p class="empty-state">' + (games.length ? 'No games match your filters.' : 'Your games, all in one place. Use Edit to add your first game.') + '</p>';
+  renderLibrary(el('gamesGrid'),'game',list);
 }
 
 export function openGameModal(idx = null) {
@@ -48,6 +44,7 @@ export function openGameModal(idx = null) {
     <div class="fg"><label for="game-opinion">Notes / opinion</label><textarea id="game-opinion" name="opinion">${esc(g.opinion)}</textarea></div>
     <p id="gameError" role="alert" style="color:var(--red)"></p><div class="m-btns">${idx != null ? '<button class="btn btn-r" type="button" id="gameDelete">Delete</button>' : ''}<button class="btn" type="button" id="gameCancel">Cancel</button><button class="btn btn-g" type="submit">Save</button></div></form>`;
   el('ov').classList.add('open');
+  const saveArtwork=artworkEditor(el('gameForm'),'game',g,()=>({...g,title:el('game-title').value,translations:{es:{title:el('game-title').value},en:{title:el('game-titleEn').value}},releaseYear:Number(el('game-releaseYear').value)||null}));
   el('gameCancel').onclick = close;
   el('gameDelete')?.addEventListener('click', () => {
     if (!_authed || !confirm(t('Delete this item?'))) return;
@@ -64,7 +61,8 @@ export function openGameModal(idx = null) {
     }
     next.translations={...g.translations,es:{...g.translations?.es,title:next.title},en:{...g.translations?.en,title:next.titleEn}};
     delete next.titleEn;
-    next.status = values.get('status'); next.opinion = values.get('opinion').trim();
+    next.status = values.get('status'); next.opinion = values.get('opinion');
+    saveArtwork(next);
     const error = validateGame(next);
     if (error) { el('gameError').textContent = error; return; }
     D.games ||= [];

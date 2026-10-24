@@ -1,3 +1,4 @@
+import {validArtwork} from './artwork-model.js';
 // Versioned, additive schema. Financial data and original media fields are never rewritten.
 export const MUSCLES = ['chest','back','lowerBack','shoulders','abs','cardio','legs','biceps','triceps'];
 // Missing counts stay unknown: a legacy muscle selection is not one set.
@@ -38,6 +39,7 @@ export function validateLife(obj) {
   for(const k of ['books','movies','series','games','activities']) {
     (Array.isArray(obj[k])?obj[k]:[]).forEach(x=>{
       if(!record(x)) {errors.push('Invalid '+k+' item'); return;}
+      if(k!=='activities' && !validArtwork(x.artwork)) errors.push('Invalid artwork: '+k);
       if(x.translations!=null && (!record(x.translations) || ['es','en'].some(l=>!record(x.translations[l]) || Object.values(x.translations[l]).some(v=>typeof v!=='string')))) errors.push('Invalid translations: '+k);
     });
   }

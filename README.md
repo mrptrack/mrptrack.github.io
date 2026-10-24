@@ -4,6 +4,27 @@ Copia independiente de Track CMG, con logo MRP y las mismas funciones,
 incluidos JPY y videojuegos. Arranca vacía: no incluye datos, cuentas ni
 conexiones del propietario de la página original.
 
+## Biblioteca visual
+
+Películas, libros, series y videojuegos comparten las tarjetas con portada,
+fichas completas y diseño móvil de CMG. Las fuentes públicas son Wikipedia,
+Open Library y TVmaze; no requieren claves en el frontend. Se conservan las
+notas, opiniones y títulos ES/EN existentes. Las películas muestran Vista o
+Pendiente; los libros, Leído o Pendiente. No hay rótulos de colección ni
+contadores decorativos.
+
+Las portadas automáticas se guardan, tras cargar correctamente, en el JSON
+privado de MRP y en el almacenamiento local. La sincronización se agrupa y
+espera a que haya terminado la carga autenticada; respeta las ediciones y las
+portadas elegidas manualmente. Hay una caché separada de hasta 240 imágenes
+que sobrevive a los despliegues. No incluye datos ni conexiones de CMG, ni
+las funciones de brokers.
+
+Comprobaciones locales sin conexión a cuentas: `node tests/artwork.cjs`,
+`node tests/artwork-cache.cjs`, `node tests/artwork-store.cjs` y
+`node tests/artwork-image-cache.cjs`. `node tests/library-preview.cjs`
+sirve una prueba visual con datos ficticios y sin escrituras a Drive.
+
 ## Qué falta para conectarla
 
 En `js/config.js` quedan dos valores vacíos:
