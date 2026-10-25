@@ -60,7 +60,8 @@ export const COMPANY_LOGOS=[
     "names": [
       "Renault SA"
     ],
-    "file": "renault.ico"
+    "file": "renault-diamond.png",
+    "background": "#000000"
   },
   {
     "id": "zoomd",

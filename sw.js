@@ -38,7 +38,7 @@ const PRECACHE_URLS = [
   new URL('icons/companies/bqe-water.jpg', APP_BASE).href,
   new URL('icons/companies/spectra-systems.ico', APP_BASE).href,
   new URL('icons/companies/northern-bear.jpg', APP_BASE).href,
-  new URL('icons/companies/renault.ico', APP_BASE).href,
+  new URL('icons/companies/renault-diamond.png', APP_BASE).href,
   new URL('icons/companies/zoomd.svg', APP_BASE).href,
   new URL('icons/companies/tesla.ico', APP_BASE).href,
   new URL('icons/companies/total-energy.png', APP_BASE).href,
