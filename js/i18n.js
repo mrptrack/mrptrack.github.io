@@ -1,5 +1,7 @@
 import { D } from './state.js';
 const PAIRS = [
+  ['Closed','Cerradas'],
+  ['Daily change','Cambio diario'],['Since purchase','Desde compra'],['No open positions','Sin posiciones abiertas'],['Portfolio overview','Resumen de cartera'],['Evolution','Evolución'],['Value and contributions','Valor y aportaciones'],['Prices versus the previous close, converted at the current exchange rate.','Precios frente al cierre anterior, convertidos al cambio actual.'],
   ['My bookshelf','Mi biblioteca'],['My film collection','Mi videoteca'],['My series collection','Mis series'],['My game library','Mis videojuegos'],
   ['Ideas worth keeping. Pages still to turn.','Ideas que se quedan. Páginas por descubrir.'],['Great cinema, personal favourites and the next watch.','Buen cine, mis favoritas y las próximas por ver.'],['One more episode. Or a whole new story.','Un capítulo más. O una historia nueva.'],['Worlds explored, stories still to play.','Mundos explorados e historias por jugar.'],
   ['Artwork','Portadas'],['Covers belong to their respective owners.','Las portadas pertenecen a sus respectivos titulares.'],['View details','Ver ficha'],['My rating','Mi nota'],['My opinion','Mi opinión'],['pages','páginas'],

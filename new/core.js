@@ -1,4 +1,4 @@
-export const S={data:null,market:null,seed:null,extras:{favorites:[],progress:{},watchNotes:{}},ui:{page:'home',shelf:'movies',mediaFilter:'all',mediaSort:'default',mediaQuery:'',mediaLimit:18,period:'6m',portfolioTab:'positions',broker:'all',privacy:false,theme:'dark',language:'es',layout:'new',weekGoal:3,month:new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit'}).format(new Date()),favoriteOnly:false}};
+export const S={data:null,market:null,seed:null,extras:{favorites:[],progress:{},watchNotes:{}},ui:{page:'portfolio',shelf:'movies',mediaFilter:'all',mediaSort:'default',mediaQuery:'',mediaLimit:18,period:'6m',portfolioTab:'positions',broker:'all',privacy:false,theme:'dark',language:'es',layout:'new',weekGoal:3,month:new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit'}).format(new Date()),favoriteOnly:false}};
 const undo=[];
 const bridge=window.parent!==window?window.parent.TrackDashboardUI:null;
 let confirmed=null,pendingState=null;
@@ -36,7 +36,7 @@ function hydrate(payload){
  S.data=structuredClone(payload.data);
  for(const k of ['holdings','closedTrades','history','gym','books','movies','series','games','watchlist','brokers','workouts','activities'])S.data[k]??=[];
  S.data.cash??=0;S.data.totalInvested??=0;
- S.seed=structuredClone(S.data);S.market=payload.market;S.health=payload.health;
+ S.seed=structuredClone(S.data);S.market=payload.market;
  S.extras={favorites:[],progress:{},watchNotes:{},templates:[],...structuredClone(payload.data.dashboardExtras||{})};
  S.ui.weekGoal=S.extras.weekGoal||3;S.ui.language=S.data.preferences?.language||'es';S.ui.theme=S.data.preferences?.theme||'dark';
  S.sync=payload.sync;S.canEdit=payload.canEdit;S.profile={brand:payload.brand,user:payload.user};
@@ -73,12 +73,12 @@ export function toggleFavorite(kind,index){const x=S.data[kind][index],k=key(kin
 export function totals(){const d=S.data;return {books:d.books.filter(x=>done('books',x)).length,movies:d.movies.filter(x=>done('movies',x)).length,games:d.games.filter(x=>done('games',x)).length,pages:d.books.reduce((s,x)=>s+(done('books',x)?x.pages||0:progress('books',x).amount||0),0),pagesLeft:d.books.reduce((s,x)=>s+Math.max(0,(x.pages||0)-(done('books',x)?x.pages||0:progress('books',x).amount||0)),0),gameHours:d.games.reduce((s,x)=>s+(x.hours||0),0)};}
 export async function init(){
  if(!bridge)throw Error('Abre esta vista desde Ajustes en tu dashboard.');
- hydrate(bridge.read());try{S.ui.privacy=JSON.parse(localStorage.getItem('dashboard_view_privacy'))===true;}catch{}
+ hydrate(bridge.read());S.ui.privacy=false;
  initI18n();document.addEventListener('view-rendered',translateUI);
  window.addEventListener('dashboard-state',e=>{
   S.sync=e.detail.sync;S.canEdit=e.detail.canEdit;
   if(committing||document.querySelector('dialog[open], input:focus, textarea:focus, select:focus')){pendingState=e.detail;return;}
-  if(!same(confirmed,e.detail.data)||!same(S.market,e.detail.market)||!same(S.health,e.detail.health)){
+  if(!same(confirmed,e.detail.data)||!same(S.market,e.detail.market)){
    hydrate(e.detail);document.dispatchEvent(new CustomEvent('lab-change',{detail:''}));
   }
   for(const el of document.querySelectorAll('.preview-badge,.preview-status>span')){const text=[...el.childNodes].find(n=>n.nodeType===3);if(text)text.nodeValue=S.sync||'Conectado';}

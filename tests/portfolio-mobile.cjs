@@ -1,0 +1,15 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const root=path.resolve(process.argv[2]||path.join(__dirname,'..')),read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const context=vm.createContext({Number});vm.runInContext(read('js/portfolio-day.js').replace('export function','function')+';this.calculate=dailyPerformance',context);
+const near=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-8,actual+' != '+expected),day=context.calculate;
+let value=day([{value:110,day:10},{value:220,day:10}],50);near(value.change,30);near(value.percent,30/350*100);
+value=day([{value:110,day:10},{value:80,day:-20}],20);near(value.change,-10);near(value.percent,-10/220*100);
+near(day([{value:100,day:0}],20).change,0);near(day([],500).percent,0);assert.equal(day([],0).percent,null);
+for(const quote of [{value:null,day:2},{value:100,day:null},{value:NaN,day:2},{value:100,day:-100}])assert.equal(day([quote]),null);
+const app=read('new/app.js'),primary=app.match(/const primaryNav=(\[.*?\]);/)[1];
+assert.deepEqual(JSON.parse(JSON.stringify(vm.runInNewContext(primary))).map(x=>x[0]),['portfolio','home','gym','library']);
+assert.match(read('new/core.js'),/page:'portfolio'/);assert.doesNotMatch(app,/data-action="privacy"|desktop-privacy|\['health','Salud'/);
+assert.doesNotMatch(read('index.html'),/data-tab="health"|id="tab-health"/);assert.doesNotMatch(read('js/app.js'),/renderHealth|refreshHealth/);
+assert.match(read('new/finance.js'),/data-label="Cambio diario"/);assert.match(read('new/finance.js'),/dailyPerformance\(d.holdings.map\(quoteFor\),d.cash\)/);
+const worker=read('sw.js');for(const file of ['js/portfolio-day.js','new/portfolio.css'])assert.ok(worker.includes(file));
+console.log('PASS: weighted daily price returns, cash, missing quotes, portfolio default, four mobile destinations and no Health UI.');

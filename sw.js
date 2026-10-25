@@ -99,6 +99,8 @@ const PRECACHE_URLS = [
   new URL('new/icons.js', APP_BASE).href,
   new URL('new/charts.js', APP_BASE).href,
   new URL('new/style.css', APP_BASE).href,
+  new URL('new/portfolio.css', APP_BASE).href,
+  new URL('js/portfolio-day.js', APP_BASE).href,
   new URL('new/index.html', APP_BASE).href,
   new URL('new/core.js', APP_BASE).href,
   new URL('new/original/broker-model.js', APP_BASE).href,
