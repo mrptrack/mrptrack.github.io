@@ -1,0 +1,9 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');const root=path.resolve(process.argv[2]||path.join(__dirname,'..')),read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const files=fs.readdirSync(path.join(root,'new')).filter(f=>f.endsWith('.js'));for(const f of files)assert.doesNotMatch(read('new/'+f),/original-section|\.openSection\(|dashboardOriginalPanel/,'legacy UI fallback in '+f);
+for(const action of ['position-save','position-buy','position-sell','position-delete','cash-save','brokers-save','broker-movement','trade-save','trade-delete','history-save','history-delete'])assert.ok(read('js/finance-editor-model.js').includes(action),action);
+for(const action of ['position-editor','purchase','sell-position','trade-editor','watch-editor'])assert.ok(read('new/finance.js').includes(action),action);
+assert.match(read('new/media.js'),/data-kind=.*data-index/);assert.match(read('new/media-editor.js'),/title-es/);assert.match(read('new/media-editor.js'),/artworkOverride/);assert.match(read('new/ui.js'),/type="button"/);
+assert.match(read('new/index.html'),/layout=new/);assert.match(read('js/layout-bridge.js'),/get\('layout'\)==='new'/);assert.doesNotMatch(read('js/layout-bridge.js'),/showOriginal|closeOriginal|originalPanel/);
+for(const file of ['js/data-validation.js','js/finance-editor-model.js','new/editors.js','new/media-editor.js','new/data-tools.js','new/editors.css'])assert.ok(read('sw.js').includes(file),'missing offline asset '+file);
+assert.match(read('new/data-tools.js'),/confirmNativeImport/);assert.match(read('js/layout-bridge.js'),/dashboard_editor_backup_v1/);assert.match(read('js/analytics.js'),/renderBenchmark\(targetDocument=document\)/);
+console.log('PASS: no Classic UI fallbacks, native finance/media/watch/gym editors, standalone entry, shared validation/benchmarks, confirmed imports, rollback backups and complete offline assets.');

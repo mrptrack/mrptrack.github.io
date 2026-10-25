@@ -1,15 +1,13 @@
 # Diseños del dashboard
 
-La aplicación conserva su interfaz original como **Clásica**, seleccionada por defecto. Ajustes → Diseño permite activar **Nueva** y volver a la clásica. La elección se guarda por navegador y por web; no modifica las preferencias del otro usuario ni exige borrar cookies.
+Clásica y Nueva usan el mismo JSON, Google Sign-In y Apps Script. Clásica sigue siendo el valor por defecto para navegadores nuevos. Ajustes conserva la selección por navegador y por web. `/new/` o `/?layout=new` abre Nueva con el inicio de sesión común.
 
-La nueva interfaz usa la sesión, el estado y el guardado de la aplicación existente. No contiene datos de demostración, archivos personales ni otro backend. Sus textos son descriptivos, sin lemas.
+Nueva es un cliente completo: sus formularios de cartera, efectivo, brokers, operaciones, histórico, Biblioteca, gimnasio, medidas y seguimiento son propios. No abre paneles de Clásica. La gráfica de benchmarks se dibuja dentro del cliente usando el cálculo compartido y las mismas aportaciones en las mismas fechas. Salud no está en ninguna de las dos interfaces.
 
-Los benchmarks, la edición financiera y las herramientas completas de Salud se abren en un panel con los componentes originales. Volver devuelve al diseño nuevo sin cambiar la preferencia. TrackMRP conserva sus diferencias funcionales: no se añade la gestión de brokers ni la conexión de Salud de TrackCMG.
+Las ediciones de Biblioteca y gimnasio usan parches validados por campo. Los campos financieros siguen prohibidos en ese canal. Las finanzas usan acciones explícitas, preparación inmutable y comprobación del estado antes de guardar. Una actualización de cotizaciones no impide corregir una posición si no cambió el estado financiero; las ediciones del histórico comprueban también su revisión.
 
-Las ediciones de biblioteca, gimnasio y seguimiento se validan y guardan por el canal existente de Drive. La comunicación entre vistas solo permite editar esos campos y `dashboardExtras` (favoritos, progreso, notas y rutinas); rechaza sustituciones de cartera, efectivo, aportaciones, brokers, operaciones o histórico. Si el estado ha cambiado desde que se abrió un formulario, se rechaza la edición en lugar de pisarlo. La sesión debe estar autenticada y la carga de la nube debe haber terminado.
+Cada edición mantiene una copia previa. Nueva ofrece deshacer y revisar la copia anterior desde Ajustes. La importación tiene validación compartida, revisión, confirmación explícita y descarga del estado anterior; un archivo vacío no pisa una cartera existente. Las escrituras requieren sesión, carga terminada y ausencia de cambios pendientes.
 
-Salud sigue fuera del JSON financiero. Al cerrar sesión se elimina la vista nueva. El actualizador conserva sesiones y datos; espera mientras hay un formulario, un panel nativo o un guardado pendiente. Ambas vistas se incluyen en la caché de cada publicación.
+La caché incluye ambos clientes y sus editores. El actualizador espera mientras un formulario o guardado está abierto y conserva la sesión. TrackMRP mantiene sus particularidades, incluida la corrección de histórico de septiembre, sin añadir el panel de brokers de TrackCMG a su navegación.
 
-Verificación: `node tests/layouts.cjs`, `node tests/training-sets.cjs`, `node tests/artwork.cjs` y `node tests/app-update.cjs`; en TrackCMG también `node tests/health.cjs`. Se han probado en una copia aislada con la nube sustituida por un guardado local: selector, recarga, lectura compartida, series de gimnasio, estado sin histórico, idiomas y navegación móvil. Las pruebas no escriben en el Drive real.
-
-Punto de recuperación anterior a este cambio: etiqueta Git local `before-dual-ui-2026-10-25`. La publicación se puede revertir mediante un commit de reversión; las cifras financieras no se han migrado ni recalculado para este cambio.
+Detalles y reglas de reversión: [new-editor.md](new-editor.md). Pruebas principales: `tests/finance-editor.cjs`, `tests/native-bridge.cjs`, `tests/new-independent.cjs`, `tests/layouts.cjs`, `tests/training-sets.cjs` y `tests/app-update.cjs`. Las pruebas de interfaz usan copias locales y no escriben en Drive.

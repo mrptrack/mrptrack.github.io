@@ -271,7 +271,9 @@ async function _loadDailyMapCached(symbol, key) {
 
 const _cacheKey = sym => 'bench_' + sym.replace(/[^A-Za-z0-9]/g, '').toLowerCase() + '_v1';
 
-export async function renderBenchmark() {
+let benchmarkDocument=document;
+export async function renderBenchmark(targetDocument=document) {
+  benchmarkDocument=targetDocument;
   // _benchMaps === null → aún no hemos intentado cargar (o falló HTTP → reintentar)
   if (_benchMaps === null) {
     try {
@@ -333,10 +335,10 @@ function _simPrefixesFor(map, usd, contribs) {
 }
 
 function _drawBenchmark() {
-  const canvas = document.getElementById('cBenchmark');
+  const canvas = benchmarkDocument.getElementById('cBenchmark');
   if (!canvas) return;
 
-  const period = document.querySelector('#benchmarkBtns .active')?.dataset.period || 'all';
+  const period = benchmarkDocument.querySelector('#benchmarkBtns .active')?.dataset.period || 'all';
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
 

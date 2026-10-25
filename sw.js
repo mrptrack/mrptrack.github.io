@@ -30,6 +30,13 @@ const ARTWORK_HOSTS=['covers.openlibrary.org','upload.wikimedia.org','thumb.wiki
 
 // Assets precargados en install (shell de la app)
 const PRECACHE_URLS = [
+  new URL('new/editors.css', APP_BASE).href,
+  new URL('new/data-tools.js', APP_BASE).href,
+  new URL('new/media-editor.js', APP_BASE).href,
+  new URL('new/editors.js', APP_BASE).href,
+  new URL('js/finance-editor-model.js', APP_BASE).href,
+  new URL('js/data-validation.js', APP_BASE).href,
+  new URL('js/broker-model.js', APP_BASE).href,
   new URL('js/company-logos.js', APP_BASE).href,
   new URL('js/company-logo-catalog.js', APP_BASE).href,
   new URL('css/company-logos.css', APP_BASE).href,

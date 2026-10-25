@@ -1,0 +1,25 @@
+import {S,esc,TODAY,money} from './core.js';import {modal,closeModal,btn,toast} from './ui.js';import {icon} from './icons.js';
+const api=()=>window.parent.TrackDashboardUI;
+function download(data,suffix='backup'){const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=(S.profile.brand==='Track MRP'?'trackmrp':'trackcmg')+'-'+suffix+'-'+TODAY+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+export function dataTools(){const backup=api().backup();const d=modal(`<h2>Copias y datos</h2><div class="editor-menu">${btn(icon('shield',18)+' Descargar copia JSON','export-data')}${btn(icon('plus',18)+' Importar copia JSON','import-data')}${backup?btn(icon('undo',18)+' Revisar copia anterior','restore-backup'):''}${btn(icon('chart',18)+' Editar histórico','history-editor')}</div><p class="form-hint">Antes de importar se valida el archivo y se guarda una copia del estado actual.</p>`);return d;}
+export function exportData(){download(api().read().data);toast('Copia descargada');}
+export function importData(prefill=''){
+ const d=modal(`<h2>Importar copia JSON</h2><label class="form-field">Archivo JSON<input id="nativeImportFile" type="file" accept=".json,application/json"></label><label class="form-field">O pega el JSON<textarea id="nativeImportText" rows="6" spellcheck="false">${esc(prefill)}</textarea></label><button class="btn primary" id="analyzeNativeImport">Analizar</button><div id="nativeImportPreview"></div>`,{wide:true});let staged;
+ d.querySelector('#nativeImportFile').onchange=async e=>{const file=e.target.files[0];if(file)d.querySelector('textarea').value=await file.text();};
+ d.querySelector('#analyzeNativeImport').onclick=()=>{
+  staged=api().analyzeImport(d.querySelector('textarea').value);const preview=d.querySelector('#nativeImportPreview');
+  if(!staged.ok){preview.innerHTML=`<p class="form-error">${(staged.errors||[]).map(esc).join('<br>')}</p>`;return;}
+  const labels={holdings:'Posiciones',closedTrades:'Operaciones cerradas',history:'Histórico',books:'Libros',movies:'Películas',series:'Series',games:'Videojuegos',gym:'Medidas',workouts:'Sesiones',watchlist:'Seguimiento'};
+  preview.innerHTML=`<h3>Revisión del archivo</h3><div class="import-summary">${staged.summary.map(row=>`<div><span>${labels[row.key]}</span><b>${row.before} → ${row.after}</b></div>`).join('')}<div><span>Efectivo</span><b>${money(staged.cash)}</b></div><div><span>Aportado</span><b>${money(staged.totalInvested)}</b></div></div>${staged.warnings?.length?`<details><summary>Avisos del archivo</summary><ul>${staged.warnings.map(w=>`<li>${esc(w)}</li>`).join('')}</ul></details>`:''}<label class="editor-check"><input type="checkbox" id="mergeNativeHistory" checked> Conservar también los cierres locales que no estén en el archivo</label><label class="editor-check"><input type="checkbox" id="confirmNativeImport"> Entiendo que se sustituirán los datos actuales</label><button class="btn primary" id="applyNativeImport" disabled>Importar y sincronizar</button><p class="form-error" id="nativeImportError"></p>`;
+  d.querySelector('#confirmNativeImport').onchange=e=>d.querySelector('#applyNativeImport').disabled=!e.target.checked;
+  d.querySelector('#applyNativeImport').onclick=()=>{
+   if(!d.querySelector('#confirmNativeImport').checked)return;download(api().read().data,'antes-de-importar');
+   const result=api().importData({token:staged.token,confirmed:true,mergeHistory:d.querySelector('#mergeNativeHistory').checked});
+   if(!result.ok){d.querySelector('#nativeImportError').textContent=result.error;return;}
+   closeModal();S.ui.page='portfolio';window.dispatchEvent(new CustomEvent('dashboard-state',{detail:api().read()}));toast('Datos importados. Sincronizando…');
+  };
+ };
+}
+export function restoreBackup(){const saved=api().backup();if(saved)importData(JSON.stringify(saved.data,null,2));}
+export function benchmarkPanel(){const period=S.ui.benchmarkPeriod||'all';return `<section class="panel native-benchmark"><div class="section-head"><h2>Benchmarks</h2><div class="periods" id="benchmarkBtns">${[['all','Todo'],['1y','1A'],['6m','6M'],['3m','3M'],['1m','1M']].map(([id,label])=>`<button class="btn ${period===id?'active selected':''}" data-action="benchmark-period" data-period="${id}">${label}</button>`).join('')}</div></div><div class="native-benchmark-chart"><canvas id="cBenchmark" aria-label="Cartera frente a índices"></canvas></div><p class="muted" id="nativeBenchmarkStatus" role="status">Cargando índices…</p></section>`;}
+export async function loadBenchmarks(){if(!document.getElementById('cBenchmark'))return;try{const state=await api().renderBenchmarks(document);const el=document.getElementById('nativeBenchmarkStatus');if(el)el.textContent=state?.available?'':'Índices no disponibles. Vuelve a abrir Análisis para reintentar.';}catch{const el=document.getElementById('nativeBenchmarkStatus');if(el)el.textContent='No se han podido cargar los índices. Vuelve a abrir Análisis para reintentar.';}}

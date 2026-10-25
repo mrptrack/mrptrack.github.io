@@ -81,7 +81,7 @@ assert.equal(validateLife(roundtrip).length,0);
 // Check the production JSON exporter/importer, not only the new schema helper.
 context.document.dispatchEvent=()=>{};context.Event=Event;
 context.FALLBACK={holdings:[],closedTrades:[],history:[],gym:[],books:[],movies:[],series:[],watchlist:[],cash:0,totalInvested:0};
-vm.runInContext(source('storage.js')+'\n'+source('game-schema.js')+'\n'+source('importer.js'),context);
+vm.runInContext(source('storage.js')+'\n'+source('game-schema.js')+'\n'+source('broker-model.js')+'\n'+source('data-validation.js')+'\n'+source('importer.js'),context);
 context.loadDataFromObj({...context.FALLBACK,...roundtrip,workouts:[session,legacy],cash:100,totalInvested:67000,holdings:[{ticker:'TEST',shares:2,entryPrice:10,currency:'EUR',dividends:0}]});
 const exported=JSON.parse(JSON.stringify(context.buildDataObj()));
 const imported=context.validateImportObj(exported);

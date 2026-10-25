@@ -294,3 +294,5 @@ document.addEventListener('layout-changed',()=>{renderAll();renderCalculator();i
 
 document.addEventListener('preferences-changed', () => { renderAll(); renderCalculator(); if (_benchmarkLoaded) renderBenchmark(); });
 init();
+
+document.addEventListener('dashboard-finance-updated',()=>{renderAll();refreshPortfolio();});

@@ -4,6 +4,7 @@ const bridge=window.parent!==window?window.parent.TrackDashboardUI:null;
 let confirmed=null,pendingState=null;
 import {D as translationState} from '../js/state.js';
 import {initI18n,translateUI} from '../js/i18n.js';
+import {financeRevision,financeIdentity} from '../js/finance-editor-model.js';
 export const locale=()=>S.ui.language==='en'?'en-GB':'es-ES';
 export const TODAY=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 export const kinds={books:'Libros',movies:'Películas',series:'Series',games:'Videojuegos'};
@@ -24,7 +25,7 @@ export function episodeCount(x){const parts=String(x.epsPerSeason||'').split(/[,
 export function status(kind,x){const p=progress(kind,x);if(kind==='games')return {Completed:'done',Playing:'active',Paused:'paused',Dropped:'dropped'}[x.status]||'pending';if(kind==='series'){if(['Entera','Finished'].includes(x.watched))return 'done';if(['Al día','Up to date'].includes(x.watched))return 'uptodate';if(x.watched?.trim())return x.wantFinish==='No'?'dropped':'active';return 'pending';}if(x.libraryStatus)return x.libraryStatus;if(p.status)return p.status;if(kind==='books')return x.myRating!=null?'done':'pending';if(kind==='movies')return x.myRating!=null||x.opinion?.trim()?'done':'pending';if(kind==='games')return {Completed:'done',Playing:'active',Paused:'paused',Dropped:'dropped'}[x.status]||'pending';if(['Entera','Finished'].includes(x.watched))return 'done';if(['Al día','Up to date'].includes(x.watched))return 'uptodate';if(x.watched?.trim())return x.wantFinish==='No'?'dropped':'active';return 'pending';}
 export const statusLabel=s=>({done:'Completado',pending:'Pendiente',active:'En curso',uptodate:'Al día',paused:'En pausa',dropped:'Abandonado'}[s]||s);
 export function done(kind,x){return ['done','uptodate'].includes(status(kind,x));}
-export function cover(x){if(S.profile?.brand==='Track MRP'&&norm(x.title)==='hades')return '../icons/covers/hades.jpg';if(S.profile?.brand==='Track CMG'&&norm(x.title).includes('little book of valuation'))return '../icons/covers/the-little-book-of-valuation.jpg';return x.artwork?.localUrl?'../'+x.artwork.localUrl:x.artwork?.url||'';}
+export function cover(x){if(x.artworkOverride)return x.artwork?.localUrl?'../'+x.artwork.localUrl:x.artwork?.url||'';if(S.profile?.brand==='Track MRP'&&norm(x.title)==='hades')return '../icons/covers/hades.jpg';if(S.profile?.brand==='Track CMG'&&norm(x.title).includes('little book of valuation'))return '../icons/covers/the-little-book-of-valuation.jpg';return x.artwork?.localUrl?'../'+x.artwork.localUrl:x.artwork?.url||'';}
 export function meta(kind,x){return kind==='books'?[x.author,x.pages?num(x.pages)+' págs.':null]:kind==='movies'?[x.year,x.duration]:kind==='games'?[x.platform,x.releaseYear]:[x.platform,x.years];}
 export function completion(kind,x){const p=progress(kind,x);if(done(kind,x))return 100;if(kind==='books'&&x.pages)return Math.min(100,(p.amount||0)/x.pages*100);return 0;}
 export function totalValue(){return S.market.total;}
@@ -36,7 +37,7 @@ function hydrate(payload){
  S.data=structuredClone(payload.data);
  for(const k of ['holdings','closedTrades','history','gym','books','movies','series','games','watchlist','brokers','workouts','activities'])S.data[k]??=[];
  S.data.cash??=0;S.data.totalInvested??=0;
- S.seed=structuredClone(S.data);S.market=payload.market;
+ S.seed=structuredClone(S.data);S.market=payload.market;S.rates=payload.rates||{EUR:1};S.capabilities=payload.capabilities||{};
  S.extras={favorites:[],progress:{},watchNotes:{},templates:[],...structuredClone(payload.data.dashboardExtras||{})};
  S.ui.weekGoal=S.extras.weekGoal||3;S.ui.language=S.data.preferences?.language||'es';S.ui.theme=S.data.preferences?.theme||'dark';
  S.sync=payload.sync;S.canEdit=payload.canEdit;S.profile={brand:payload.brand,user:payload.user};
@@ -65,9 +66,16 @@ export function commit(label,fn){
 }
 export function undoLast(){
  const old=undo.at(-1);if(!old){document.dispatchEvent(new CustomEvent('lab-toast',{detail:'No hay cambios que deshacer.'}));return;}
+ if(old.financeToken){const result=bridge.undoFinance({token:old.financeToken,expected:financeRevision(S.seed)});if(!result.ok){document.dispatchEvent(new CustomEvent('lab-toast',{detail:result.error}));return;}undo.pop();hydrate(bridge.read());document.dispatchEvent(new CustomEvent('lab-change',{detail:'Último cambio deshecho'}));return;}
  const result=bridge.applyEdits({changes:old.changes.map(c=>({field:c.field,before:c.after,after:c.before}))});
  if(!result.ok){document.dispatchEvent(new CustomEvent('lab-toast',{detail:result.error}));return;}
  undo.pop();hydrate(bridge.read());document.dispatchEvent(new CustomEvent('lab-change',{detail:'Último cambio deshecho'}));
+}
+export function editFinance(label,operation,values){
+ if(!S.canEdit){document.dispatchEvent(new CustomEvent('lab-toast',{detail:'Espera a que termine la sincronización antes de editar.'}));return false;}
+ const result=bridge.finance({operation,values,expected:financeRevision(S.seed),expectedIdentity:financeIdentity(S.seed)});
+ if(!result.ok){document.dispatchEvent(new CustomEvent('lab-toast',{detail:result.error}));return false;}
+ undo.push({financeToken:result.token});if(undo.length>20)undo.shift();hydrate(bridge.read());document.dispatchEvent(new CustomEvent('lab-change',{detail:label}));return true;
 }
 export function toggleFavorite(kind,index){const x=S.data[kind][index],k=key(kind,x);commit(favorite(kind,x)?'Quitado de favoritos':'Añadido a favoritos',()=>{S.extras.favorites=S.extras.favorites.includes(k)?S.extras.favorites.filter(v=>v!==k):[...S.extras.favorites,k];});}
 export function totals(){const d=S.data;return {books:d.books.filter(x=>done('books',x)).length,movies:d.movies.filter(x=>done('movies',x)).length,games:d.games.filter(x=>done('games',x)).length,pages:d.books.reduce((s,x)=>s+(done('books',x)?x.pages||0:progress('books',x).amount||0),0),pagesLeft:d.books.reduce((s,x)=>s+Math.max(0,(x.pages||0)-(done('books',x)?x.pages||0:progress('books',x).amount||0)),0),gameHours:d.games.reduce((s,x)=>s+(x.hours||0),0)};}
