@@ -6,4 +6,6 @@
 .company-logo.company-logo-small{width:28px;height:28px;min-width:28px;flex-basis:28px;border-radius:7px}.company-logo-small img{padding:3px}.company-logo-small .company-initials{font-size:8px}
 .company-logo.ticker-mark{display:inline-flex;background:var(--panel2,#19212c);color:var(--muted,#909aaa);width:36px;height:36px;min-width:36px;flex-basis:36px;padding:0}
 .company-watch-identity{display:inline-flex;align-items:center;gap:9px;min-width:0}.company-detail-title{display:flex;align-items:center;gap:12px}
+#tradesTable th:nth-child(2),#tradesTable tbody td:nth-child(2){min-width:220px}
+#tradesTable .company-label-text{overflow-wrap:normal;word-break:normal}
 @media(max-width:540px){.company-heading{gap:8px}.company-heading>.company-logo{width:34px;height:34px;min-width:34px;flex-basis:34px}.company-logo.company-logo-small{width:25px;height:25px;min-width:25px;flex-basis:25px}.company-label{gap:7px}.company-logo.ticker-mark{width:32px;height:32px;min-width:32px;flex-basis:32px}.company-detail-title{gap:9px}.company-detail-title .company-logo{width:32px;height:32px;min-width:32px;flex-basis:32px}}
