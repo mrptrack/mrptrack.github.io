@@ -29,7 +29,7 @@ export function meta(kind,x){return kind==='books'?[x.author,x.pages?num(x.pages
 export function completion(kind,x){const p=progress(kind,x);if(done(kind,x))return 100;if(kind==='books'&&x.pages)return Math.min(100,(p.amount||0)/x.pages*100);return 0;}
 export function totalValue(){return S.market.total;}
 
-const editable=['books','movies','series','games','workouts','activities','watchlist','dashboardExtras'];
+const editable=['books','movies','series','games','workouts','activities','watchlist','gym','dashboardExtras'];
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 let committing=false;
 function hydrate(payload){
@@ -75,8 +75,10 @@ export async function init(){
  if(!bridge)throw Error('Abre esta vista desde Ajustes en tu dashboard.');
  hydrate(bridge.read());S.ui.privacy=false;
  initI18n();document.addEventListener('view-rendered',translateUI);
+ const flush=()=>setTimeout(()=>{if(pendingState&&!committing&&!document.querySelector('dialog[open], input:focus, textarea:focus, select:focus')){const latest=pendingState;pendingState=null;window.dispatchEvent(new CustomEvent('dashboard-state',{detail:latest}));}},0);
+ document.addEventListener('focusout',flush);document.addEventListener('dashboard-edit-closed',flush);
  window.addEventListener('dashboard-state',e=>{
-  S.sync=e.detail.sync;S.canEdit=e.detail.canEdit;
+  pendingState=null;S.sync=e.detail.sync;S.canEdit=e.detail.canEdit;
   if(committing||document.querySelector('dialog[open], input:focus, textarea:focus, select:focus')){pendingState=e.detail;return;}
   if(!same(confirmed,e.detail.data)||!same(S.market,e.detail.market)){
    hydrate(e.detail);document.dispatchEvent(new CustomEvent('lab-change',{detail:''}));

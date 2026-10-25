@@ -206,6 +206,7 @@ document.getElementById('btnAddBook')?.addEventListener('click', () => doAction(
 document.getElementById('btnAddMovie')?.addEventListener('click', () => doAction('addMovie'));
 document.getElementById('btnAddSeries')?.addEventListener('click', () => doAction('addSeries'));
 document.getElementById('btnGymAdd')?.addEventListener('click', () => addGymEntry());
+document.addEventListener('measurements-updated',renderGym);
 
 // ── Login overlay: el botón lo renderiza GSI en #gsiButton (ver auth.js) ──
 

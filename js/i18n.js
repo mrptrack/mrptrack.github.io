@@ -1,5 +1,6 @@
 import { D } from './state.js';
 const PAIRS = [
+  ['Overview','Resumen'],['At target','En objetivo'],['at target','en objetivo'],['vs target','vs objetivo'],['Updating prices…','Actualizando precios…'],['Some prices could not be updated','Algunos precios no se han actualizado'],['No prices loaded','Sin precios cargados'],['Add measurement','Añadir registro'],['Edit measurement','Editar registro'],['Measurements saved','Medidas guardadas'],['Enter weight or body fat percentage.','Introduce el peso o el porcentaje de grasa.'],['Invalid weight or measurements.','Peso o medidas no válidos.'],
   ['Closed','Cerradas'],
   ['Daily change','Cambio diario'],['Since purchase','Desde compra'],['No open positions','Sin posiciones abiertas'],['Portfolio overview','Resumen de cartera'],['Evolution','Evolución'],['Value and contributions','Valor y aportaciones'],['Prices versus the previous close, converted at the current exchange rate.','Precios frente al cierre anterior, convertidos al cambio actual.'],
   ['My bookshelf','Mi biblioteca'],['My film collection','Mi videoteca'],['My series collection','Mis series'],['My game library','Mis videojuegos'],

@@ -7,7 +7,7 @@ value=day([{value:110,day:10},{value:80,day:-20}],20);near(value.change,-10);nea
 near(day([{value:100,day:0}],20).change,0);near(day([],500).percent,0);assert.equal(day([],0).percent,null);
 for(const quote of [{value:null,day:2},{value:100,day:null},{value:NaN,day:2},{value:100,day:-100}])assert.equal(day([quote]),null);
 const app=read('new/app.js'),primary=app.match(/const primaryNav=(\[.*?\]);/)[1];
-assert.deepEqual(JSON.parse(JSON.stringify(vm.runInNewContext(primary))).map(x=>x[0]),['portfolio','home','gym','library']);
+assert.deepEqual(JSON.parse(JSON.stringify(vm.runInNewContext(primary))).map(x=>x[0]),['portfolio','gym','library','home']);
 assert.match(read('new/core.js'),/page:'portfolio'/);assert.doesNotMatch(app,/data-action="privacy"|desktop-privacy|\['health','Salud'/);
 assert.doesNotMatch(read('index.html'),/data-tab="health"|id="tab-health"/);assert.doesNotMatch(read('js/app.js'),/renderHealth|refreshHealth/);
 assert.match(read('new/finance.js'),/data-label="Cambio diario"/);assert.match(read('new/finance.js'),/dailyPerformance\(d.holdings.map\(quoteFor\),d.cash\)/);

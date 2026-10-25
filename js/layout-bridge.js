@@ -3,6 +3,7 @@ import {D,_authed,_currentUser} from './state.js';
 import {buildDataObj,saveLocal} from './storage.js';
 import {_cloudReady,saveAndSync,hasPendingCloudChanges} from './cloud.js';
 import {getPriceData,valEur} from './portfolio.js';
+import {refreshWatchlist,getWatchlistSnapshot} from './watchlist.js';
 import {validateLife} from './life-schema.js';
 import {normalizeLayout,viewPatch} from './layout-model.js';
 
@@ -19,7 +20,7 @@ function snapshot(){
  const history=[...(D.history||[])].sort((a,b)=>a.date.localeCompare(b.date));
  const complete=known===(D.holdings||[]).length,total=complete?Object.values(quotes).reduce((n,q)=>n+q.value,Number(D.cash)||0):history.at(-1)?.totalValue??null;
  const data=structuredClone(buildDataObj());data.history=history;
- return {data,market:{quotes,total,ready:complete,captured:dates.sort().at(-1)||history.at(-1)?.date||stamp()},brand,user:_currentUser?.name||brand,sync:document.getElementById('syncStatus')?.textContent||'',canEdit:_cloudReady&&!hasPendingCloudChanges()&&writes===0};
+ return {data,market:{quotes,total,watchlist:getWatchlistSnapshot(),ready:complete,captured:dates.sort().at(-1)||history.at(-1)?.date||stamp()},brand,user:_currentUser?.name||brand,sync:document.getElementById('syncStatus')?.textContent||'',canEdit:_cloudReady&&!hasPendingCloudChanges()&&writes===0};
 }
 function notify(){if(!frame||!_authed||originalPanel)return;try{frame.contentWindow.dispatchEvent(new CustomEvent('dashboard-state',{detail:snapshot()}));}catch{}}
 function updateVisibility(){
@@ -60,6 +61,8 @@ export function initLayout(){
     saveLocal();writes++;
     queue=queue.catch(()=>{}).then(async()=>{try{return await saveAndSync();}finally{writes--;notify();}});
     document.dispatchEvent(new Event('dashboard-data-updated'));
+    if(fields.includes('gym'))document.dispatchEvent(new Event('measurements-updated'));
+    if(fields.includes('watchlist'))refreshWatchlist();
     return {ok:true};
    }catch(error){return {ok:false,error:error.message};}
   },
@@ -70,9 +73,10 @@ export function initLayout(){
     document.dispatchEvent(new Event('preferences-changed'));saveAndSync();
    }
   },
-  openSection(section){if(!['portfolio','watchlist','trades','analytics','gym','books','movies','series','games'].includes(section))return;showOriginal(section);}
+  openSection(section){if(!['portfolio','watchlist','trades','analytics','gym','books','movies','series','games'].includes(section))return;showOriginal(section);},
+  refreshWatchlist(options){if(_authed)return refreshWatchlist({force:options?.force===true});}
  });
- for(const event of ['data-loaded','portfolio-updated','preferences-changed','dashboard-data-updated'])document.addEventListener(event,notify);
+ for(const event of ['data-loaded','portfolio-updated','preferences-changed','dashboard-data-updated','watchlist-prices-updated'])document.addEventListener(event,notify);
  const status=document.getElementById('syncStatus');if(status)new MutationObserver(notify).observe(status,{childList:true,characterData:true,subtree:true});
  updateVisibility();
 }

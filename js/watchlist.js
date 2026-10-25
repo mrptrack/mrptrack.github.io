@@ -4,6 +4,7 @@
 import { PROXY_URL } from './config.js';
 import { D } from './state.js';
 import { saveAndSync } from './cloud.js';
+import {WATCH_PRICE_TTL,normalizeWatchQuote} from './watchlist-model.js';
 
 const F2 = v => isFinite(v) ? (Math.abs(v) < 10 ? v.toFixed(3) : v.toFixed(2)) : '—';
 
@@ -18,37 +19,31 @@ function _distColor(distPct, hasPrice) {
 
 let _prices = {};
 let _refreshing = false;
+let _refreshPromise=null,_failed=0;
+try{const cached=JSON.parse(localStorage.getItem('watch_prices_v1')||'{}');for(const [ticker,q]of Object.entries(cached))if(q&&Number.isFinite(q.price)&&q.price>0&&Number.isFinite(q.updatedAt))_prices[ticker]=q;}catch{}
+export function getWatchlistSnapshot(){return {quotes:Object.fromEntries((D.watchlist||[]).filter(w=>_prices[w.ticker]).map(w=>[w.ticker,{..._prices[w.ticker]}])),refreshing:_refreshing,failed:_failed};}
+function publishPrices(){try{localStorage.setItem('watch_prices_v1',JSON.stringify(_prices));}catch{}renderWatchlist();document.dispatchEvent(new Event('watchlist-prices-updated'));}
 
 async function _pFetch(u) {
-  const r = await fetch(`${PROXY_URL}?url=${encodeURIComponent(u)}`);
-  if (!r.ok) throw new Error('Proxy:' + r.status);
-  return r.json();
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+  try{const r=await fetch(`${PROXY_URL}?url=${encodeURIComponent(u)}`,{signal:controller.signal});if(!r.ok)throw new Error('Proxy:'+r.status);return await r.json();}finally{clearTimeout(timer);}
 }
 
-export async function refreshWatchlist() {
-  if (_refreshing) return;
-  _refreshing = true;
-  const items = D.watchlist || [];
-  if (!items.length) { _refreshing = false; renderWatchlist(); return; }
-
-  const tickers = [...new Set(items.map(i => i.ticker))];
-  await Promise.allSettled(tickers.map(async tk => {
-    try {
-      const d = await _pFetch(
-        `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(tk)}?range=1d&interval=5m`
-      );
-      const result = d.chart?.result?.[0];
-      if (!result) return;
-      const m = result.meta;
-      let price = m.regularMarketPrice;
-      let prev  = m.chartPreviousClose || m.previousClose;
-      if (['GBp', 'GBX', 'GBx'].includes(m.currency)) { price /= 100; prev /= 100; }
-      _prices[tk] = { price, prev };
-    } catch (_) { /* mantener precio anterior si falla */ }
-  }));
-
-  _refreshing = false;
-  renderWatchlist();
+export function refreshWatchlist({force=false}={}) {
+  if(_refreshPromise)return _refreshPromise;
+  const tickers=[...new Set((D.watchlist||[]).map(i=>i.ticker))].filter(tk=>force||!_prices[tk]||Date.now()-_prices[tk].updatedAt>WATCH_PRICE_TTL).sort((a,b)=>Number(/^BRK[-.][AB]$/i.test(b))-Number(/^BRK[-.][AB]$/i.test(a)));
+  if(!tickers.length){renderWatchlist();return Promise.resolve();}
+  _refreshing=true;_failed=0;publishPrices();
+  _refreshPromise=(async()=>{
+   try{
+    for(let start=0;start<tickers.length;start+=6){
+     await Promise.allSettled(tickers.slice(start,start+6).map(async tk=>{
+      try{const d=await _pFetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(tk)}?range=1d&interval=5m`),quote=normalizeWatchQuote(d.chart?.result?.[0],Date.now());if(!quote)throw Error('No quote');_prices[tk]=quote;}catch{_failed++;}
+     }));publishPrices();
+    }
+   }finally{_refreshing=false;_refreshPromise=null;publishPrices();}
+  })();
+  return _refreshPromise;
 }
 
 export function renderWatchlist() {
