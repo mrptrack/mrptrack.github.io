@@ -1,5 +1,5 @@
 .company-logo{--logo-bg:#fff;position:relative;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;min-width:40px;flex:0 0 40px;border-radius:9px;overflow:hidden;background:var(--bg-card-2,var(--panel2,#19212c));border:1px solid var(--border,var(--line,#28313e));vertical-align:middle;color:var(--text-dim,var(--muted,#909aaa));isolation:isolate}
-.company-logo img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;padding:5px;background:var(--logo-bg);opacity:0;z-index:1}
+.company-logo img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;padding:5px;background:var(--logo-bg);z-index:1}
 .company-logo.logo-loaded img{opacity:1}.company-logo .company-initials{font:600 10px system-ui,sans-serif;letter-spacing:0;text-transform:uppercase;white-space:nowrap}
 .company-heading{display:flex;align-items:center;gap:10px;min-width:0}.company-heading-text{min-width:0}.company-heading .s-nm{overflow-wrap:anywhere}.company-heading .s-tk{line-height:1.5}
 .company-label{display:flex;align-items:center;gap:9px;min-width:0}.company-label-text{min-width:0;overflow-wrap:anywhere}.company-label-text>small{display:block}

@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Company logo refresh regression</title>
+<link rel="stylesheet" href="../css/company-logos.css">
+<style>body{font:16px system-ui;background:#101722;color:#eef3f9;padding:20px}.stock{margin:20px 0}.s-nm{font-size:13px}#result{white-space:pre-wrap;line-height:1.7}</style>
+<h1>Logo refresh test</h1>
+<button id="run">Test 30 refreshes</button>
+<p id="result" role="status">Ready</p>
+<div id="fixture"></div>
+<script type="module">
+import '../js/company-logos.js';
+const fixture=document.getElementById('fixture'),result=document.getElementById('result');
+const markup=`<div class="stock"><div class="s-tk">RNO.PA</div><div class="s-nm">Renault</div></div>
+<div class="stock"><div class="s-tk">ZOMD.V</div><div class="s-nm">Zoomd Technologies</div></div>
+<div data-ticker="RNO.PA"><span class="ticker-mark">RNO</span><b>Renault (second visible copy)</b></div>`;
+const frame=()=>new Promise(resolve=>requestAnimationFrame(resolve));
+const check=(ok,message)=>{if(!ok)throw new Error(message);};
+document.getElementById('run').onclick=async()=>{
+ try{
+  fixture.innerHTML=markup;await frame();
+  const originals=[...fixture.querySelectorAll('.company-logo img')];
+  check(originals.length===3,'Missing logos before first paint');
+  check(new Set(originals).size===3,'Concurrent copies must use separate images');
+  await Promise.all(originals.map(img=>img.complete&&img.naturalWidth?Promise.resolve():new Promise((resolve,reject)=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',reject,{once:true});})));
+  for(let n=0;n<30;n++){
+   fixture.innerHTML=markup;await frame();
+   const current=[...fixture.querySelectorAll('.company-logo img')];
+   check(current.length===3,'Missing logo on refresh '+n);
+   current.forEach((img,i)=>{
+    check(img===originals[i],'Decoded image replaced on refresh '+n);
+    check(img.complete&&img.naturalWidth>0,'Image not ready on refresh '+n);
+    check(getComputedStyle(img).opacity==='1','Logo hidden on refresh '+n);
+   });
+  }
+  result.textContent='PASS: 30 refreshes.\nSame decoded images reused.\nNo missing or hidden logos before paint.\nConcurrent copies remain separate.';
+ }catch(error){result.textContent='FAIL: '+error.message;console.error(error);}
+};
+</script>
