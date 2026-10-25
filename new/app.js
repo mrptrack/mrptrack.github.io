@@ -1,3 +1,4 @@
+import '../js/company-logos.js';
 import {S,init,saveSettings,esc,norm,title,key,commit,undoLast,toggleFavorite,TODAY,kinds} from './core.js';
 import {icon} from './icons.js';import {btn,modal,closeModal,toast,settings} from './ui.js';
 import {home} from './home.js';import {portfolio,watchlist,analytics,updateGoal,openPosition,openTrade,openWatch,addWatch} from './finance.js';

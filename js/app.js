@@ -1,3 +1,4 @@
+import './company-logos.js';
 import { initSettings, applyPreferences } from './settings.js';
 import {initLayout,authLayoutChanged} from './layout-bridge.js';
 // ============================================================
