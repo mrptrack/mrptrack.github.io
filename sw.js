@@ -30,6 +30,7 @@ const ARTWORK_HOSTS=['covers.openlibrary.org','upload.wikimedia.org','thumb.wiki
 
 // Assets precargados en install (shell de la app)
 const PRECACHE_URLS = [
+  new URL('new/positions.js', APP_BASE).href,
   new URL('new/closed-trades.js', APP_BASE).href,
   new URL('js/trade-model.js', APP_BASE).href,
   new URL('new/editors.css', APP_BASE).href,

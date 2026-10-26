@@ -10,6 +10,6 @@ const app=read('new/app.js'),primary=app.match(/const primaryNav=(\[.*?\]);/)[1]
 assert.deepEqual(JSON.parse(JSON.stringify(vm.runInNewContext(primary))).map(x=>x[0]),['portfolio','gym','library','home']);
 assert.match(read('new/core.js'),/page:'portfolio'/);assert.doesNotMatch(app,/data-action="privacy"|desktop-privacy|\['health','Salud'/);
 assert.doesNotMatch(read('index.html'),/data-tab="health"|id="tab-health"/);assert.doesNotMatch(read('js/app.js'),/renderHealth|refreshHealth/);
-assert.match(read('new/finance.js'),/data-label="Cambio diario"/);assert.match(read('new/finance.js'),/dailyPerformance\(d.holdings.map\(quoteFor\),d.cash\)/);
+assert.match(read('new/positions.js'),/data-label="Cambio diario"/);assert.match(read('new/finance.js'),/dailyPerformance\(d.holdings.map\(quoteFor\),d.cash\)/);
 const worker=read('sw.js');for(const file of ['js/portfolio-day.js','new/portfolio.css'])assert.ok(worker.includes(file));
 console.log('PASS: weighted daily price returns, cash, missing quotes, portfolio default, four mobile destinations and no Health UI.');

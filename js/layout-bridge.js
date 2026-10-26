@@ -21,7 +21,7 @@ const stamp=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'
 function snapshot(){
  if(!_authed)throw Error('Inicia sesión para ver tus datos.');
  const quotes={},dates=[];let known=0;
- for(const h of D.holdings||[]){const q=getPriceData(h.ticker),valid=Number.isFinite(q?.price);quotes[h.ticker]={price:valid?q.price:null,value:valid?valEur(h):null,day:valid&&q.prev?(q.price/q.prev-1)*100:null};if(valid)known++;const ts=q?.ts?.at(-1);if(ts&&Number.isFinite(new Date(ts).getTime()))dates.push(new Date(ts).toISOString().slice(0,10));}
+ for(const h of D.holdings||[]){const q=getPriceData(h.ticker),valid=Number.isFinite(q?.price);quotes[h.ticker]={price:valid?q.price:null,value:valid?valEur(h):null,day:valid&&q.prev?(q.price/q.prev-1)*100:null,prev:Number.isFinite(q?.prev)?q.prev:null,low:Number.isFinite(q?.low)?q.low:null,high:Number.isFinite(q?.high)?q.high:null,wk52Low:Number.isFinite(q?.wk52Low)?q.wk52Low:null,wk52High:Number.isFinite(q?.wk52High)?q.wk52High:null,pe:Number.isFinite(q?.pe)?q.pe:null,divYield:Number.isFinite(q?.divYield)?q.divYield:null,stale:!!q?._stale};if(valid)known++;const ts=q?.ts?.at(-1);if(ts&&Number.isFinite(new Date(ts).getTime()))dates.push(new Date(ts).toISOString().slice(0,10));}
  const history=[...(D.history||[])].sort((a,b)=>a.date.localeCompare(b.date));
  const complete=known===(D.holdings||[]).length,total=complete?Object.values(quotes).reduce((n,q)=>n+q.value,Number(D.cash)||0):history.at(-1)?.totalValue??null;
  const data=structuredClone(buildDataObj());data.history=history;

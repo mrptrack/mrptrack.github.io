@@ -1,0 +1,14 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const root=path.resolve(process.argv[2]||path.join(__dirname,'..')),read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const S={rates:{USD:.9,GBP:1.2,JPY:.006},ui:{language:'es'}},num=(v,d=0)=>Number(v).toFixed(d),money=(v,d=0)=>v==null?'—':num(v,d)+' €',pct=(v,d=1)=>v==null?'—':num(v,d)+'%';
+const ctx=vm.createContext({S,num,money,pct,esc:s=>String(s??''),palette:['#123'],Number,Math});vm.runInContext(read('new/positions.js').replace(/^import .*$/mg,'').replace(/export /g,'')+';this.metrics=positionMetrics;this.card=positionCard',ctx);
+const h={ticker:'TEST',name:'Example',shares:10,entryPrice:100,currency:'USD',dividends:20,exchange:'NYSE'},q={price:120,prev:115,low:114,high:122,wk52Low:80,wk52High:160,pe:12,divYield:2},before=JSON.stringify([h,q]);
+let m=ctx.metrics(h,q,.9,2160);assert.equal(m.value,1080);assert.equal(m.profit,198);assert.equal(m.returnPercent,22);assert.equal(m.dayChange,5);assert.ok(Math.abs(m.dayPercent-(120/115-1)*100)<1e-8);assert.equal(m.weight,50);assert.equal(m.weekPosition,50);
+const filtered={...h,shares:5,dividends:10},partial=ctx.metrics(filtered,q,.9,2160);assert.equal(partial.profit,99);assert.equal(partial.returnPercent,22);assert.equal(partial.weight,25);assert.equal(JSON.stringify([h,q]),before);
+m=ctx.metrics(h,{price:80,prev:85},.9,1000);assert.equal(m.profit,-162);assert.equal(m.returnPercent,-18);assert.equal(m.dayChange,-5);assert.equal(m.weekPosition,null);
+m=ctx.metrics(h,{},.9,1000);assert.equal(m.value,null);assert.equal(m.profit,null);assert.equal(m.dayPercent,null);assert.equal(m.dayChange,null);assert.equal(ctx.metrics(h,{price:120},.9,1000).dayPercent,null);
+const html=ctx.card(h,q,2160),fields=[...html.matchAll(/data-position-field="([^"]+)"/g)].map(x=>x[1]);assert.deepEqual(fields,['shares','value','dividends','weight','average','return']);
+for(const text of ['position-card-top','position-quote','position-daily','120.00','1080.00 €','198.00 €','22.00%','Dividendos (USD)','Precio medio','Rentabilidad total','Rango de 52 semanas','P/E 12.0','Yield 2.00%','position-open'])assert.ok(html.includes(text),text);
+assert.ok(html.indexOf('position-quote')<html.indexOf('position-daily'));assert.ok(html.indexOf('position-daily')<html.indexOf('position-metrics'));assert.match(html,/class="position-daily" data-label="Cambio diario"/);assert.doesNotMatch(ctx.card(h,{},1000),/NaN|undefined|Rango de 52 semanas/);
+assert.ok(read('sw.js').includes('new/positions.js'));assert.match(read('js/layout-bridge.js'),/prev:Number.isFinite/);assert.match(read('new/finance.js'),/dividends:\(h.dividends\|\|0\)\*allocation.shares\/h.shares/);
+console.log('PASS: Classic card placement/fields, native daily price change, total return including dividends, EUR conversion, broker-share proration, missing quotes and offline module.');
