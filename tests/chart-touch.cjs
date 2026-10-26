@@ -1,0 +1,22 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const root=path.resolve(process.argv[2]||path.join(__dirname,'..')),read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const S={ui:{}},rows=[{date:'2025-01-01',value:100,invested:100,x:60,y:100},{date:'2025-06-01',value:130,invested:110,x:260,y:70},{date:'2026-01-01',value:160,invested:120,x:460,y:40}];
+function events(){const listeners=new Map();return {listeners,addEventListener(t,fn){if(!listeners.has(t))listeners.set(t,new Set());listeners.get(t).add(fn);},removeEventListener(t,fn){listeners.get(t)?.delete(fn);},emit(t,e={}){for(const fn of listeners.get(t)||[])fn(e);}};}
+const document=events();
+function chart(){const node={...events(),dataset:{chart:JSON.stringify(rows),chartPlot:JSON.stringify({left:60,width:400,viewWidth:460})},ownerDocument:document,captures:new Set(),setPointerCapture(id){this.captures.add(id);},hasPointerCapture(id){return this.captures.has(id);},releasePointerCapture(id){this.captures.delete(id);}};
+ const mark=()=>({attributes:{opacity:'0'},setAttribute(k,v){this.attributes[k]=String(v);}}),cross=mark(),dot=mark(),tip={hidden:true,style:{}},hit={closest:s=>s==='.chart-hit'?hit:null};
+ node.contains=target=>target===node||target===hit;node.querySelector=s=>({'.chart-tip':tip,svg:{getBoundingClientRect:()=>({left:0,width:460})},'.chart-crosshair':cross,'.chart-selected-point':dot}[s]);node.closest=()=>null;
+ return {node,cross,dot,tip,hit,event(x,type='touch'){return {target:hit,clientX:x,pointerType:type,pointerId:1,isPrimary:true,button:0};}};}
+const context=vm.createContext({S,num:String,money:v=>v+' €',date:s=>s,esc:String,palette:[],pct:String,window:{innerWidth:390},Number,Date,Math,JSON});
+vm.runInContext(read('new/charts.js').replace(/^import .*$/mg,'').replace(/export /g,'')+';this.hook=hookCharts',context);
+const mount=c=>context.hook({querySelectorAll:()=>c?[c.node]:[]});
+let c=chart();mount(c);c.node.emit('pointerdown',c.event(260));assert.equal(c.tip.hidden,false);assert.equal(S.ui.historySelection,'2025-06-01');c.node.emit('pointerup',c.event(260));c.node.emit('pointerleave');c.node.emit('blur');assert.equal(c.tip.hidden,false,'touch release/leave/blur must keep the selected date');assert.equal(c.cross.attributes.opacity,'1');assert.equal(c.node.captures.size,0);
+c.node.emit('pointerdown',c.event(460));c.node.emit('pointermove',c.event(60));c.node.emit('pointerup',c.event(60));assert.equal(S.ui.historySelection,'2025-01-01');
+c.node.emit('pointerdown',c.event(260));c.node.emit('pointercancel',c.event(260));assert.equal(S.ui.historySelection,'2025-01-01','vertical page scrolling restores the previous pinned date');
+c=chart();mount(c);assert.equal(c.tip.hidden,false,'quotes rerender must restore the pinned date');assert.equal(c.cross.attributes.x1,'60');assert.equal(document.listeners.get('pointerdown').size,1,'only one outside handler after rerender');document.emit('pointerdown',{target:{}});assert.equal(c.tip.hidden,true);assert.equal(S.ui.historySelection,undefined);
+c.node.emit('pointerdown',c.event(260));c.node.emit('pointercancel',c.event(260));assert.equal(c.tip.hidden,true,'vertical scroll with no previous selection must not leave an accidental pin');
+c.node.emit('pointermove',c.event(460,'mouse'));assert.equal(c.tip.hidden,false);c.node.emit('pointerleave');assert.equal(c.tip.hidden,true,'mouse hover remains transient');c.node.emit('pointerdown',c.event(260,'mouse'));c.node.emit('pointerup',c.event(260,'mouse'));c.node.emit('pointerleave');assert.equal(c.tip.hidden,false,'mouse click pins too');
+c.node.emit('keydown',{key:'ArrowRight',preventDefault(){}});assert.equal(S.ui.historySelection,'2026-01-01');c.node.emit('keydown',{key:'Escape'});assert.equal(c.tip.hidden,true);
+for(const type of ['contextmenu','selectstart']){let prevented=false;c.node.emit(type,{preventDefault(){prevented=true;}});assert.equal(prevented,true);}
+mount(null);assert.equal(document.listeners.get('pointerdown').size,0);const css=read('new/portfolio.css');assert.match(css,/-webkit-user-select:none/);assert.match(css,/touch-action:pan-y pinch-zoom/);assert.doesNotMatch(css,/touch-action:none/);
+console.log('PASS: touch tap/release stays pinned, drag picks a date, vertical scroll cancels safely, rerender preserves selection, outside tap/Escape dismiss, no text selection and no leaked handlers.');

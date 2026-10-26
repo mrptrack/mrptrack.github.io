@@ -68,3 +68,7 @@
  .filter-toolbar .btn{min-height:33px;font-size:10px}.watch-table{display:block;table-layout:auto}.watch-table thead{display:none}.watch-table tbody{display:block}.watch-table .watch-row{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px 10px;padding:14px 16px;border-bottom:1px solid var(--line)}.watch-table .watch-row:last-child{border-bottom:0}.watch-table td{display:block;padding:0;border:0;text-align:left;min-width:0}.watch-table .watch-company{grid-column:1/-1;padding-right:28px}.watch-company-info h3{font-size:12px}.watch-company-info .ticker-pill{font-size:9px}.watch-table .watch-distance{text-align:right}.watch-table td b{font-size:12px}.watch-table .watch-distance b{font-size:15px}.watch-table td b small{font-size:8px}.watch-mobile-label{display:block;color:var(--muted);font-size:9px;margin-bottom:5px}.watch-table .watch-favorite{position:absolute;right:10px;top:10px;padding:0}.watch-favorite>.icon-btn{width:30px;min-height:30px}.watch-table .company-logo.company-logo-small{width:28px;height:28px;min-width:28px;flex-basis:28px}
  .measurement-actions .btn{min-height:38px}.weight-values{overflow-x:auto;padding-bottom:5px;max-width:100%}.weight-values>button{flex:none;min-width:118px}.weight-body{min-width:0}
 }
+
+/* A tap pins the chart without invoking text selection or blocking page scroll. */
+.history-chart:not(.mini),.history-chart:not(.mini) *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.history-chart:not(.mini){touch-action:pan-y pinch-zoom}
