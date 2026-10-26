@@ -1,4 +1,4 @@
-export const S={data:null,market:null,seed:null,extras:{favorites:[],progress:{},watchNotes:{}},ui:{page:'portfolio',shelf:'movies',mediaFilter:'all',mediaSort:'default',mediaQuery:'',mediaLimit:18,period:'6m',portfolioTab:'positions',broker:'all',privacy:false,theme:'dark',language:'es',layout:'new',weekGoal:3,month:new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit'}).format(new Date()),favoriteOnly:false}};
+export const S={data:null,market:null,seed:null,extras:{favorites:[],progress:{},watchNotes:{}},ui:{page:'portfolio',shelf:'movies',mediaFilter:'all',mediaSort:'default',mediaQuery:'',mediaLimit:18,period:'all',goal:{monthly:500,rate:6,target:1000000},portfolioTab:'positions',broker:'all',privacy:false,theme:'dark',language:'es',layout:'new',weekGoal:3,month:new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit'}).format(new Date()),favoriteOnly:false}};
 const undo=[];
 const bridge=window.parent!==window?window.parent.TrackDashboardUI:null;
 let confirmed=null,pendingState=null;
@@ -6,6 +6,11 @@ import {D as translationState} from '../js/state.js';
 import {initI18n,translateUI} from '../js/i18n.js';
 import {financeRevision,financeIdentity} from '../js/finance-editor-model.js';
 export const locale=()=>S.ui.language==='en'?'en-GB':'es-ES';
+export function syncView(state=S.syncInfo?.state||'local',language=S.ui.language){
+ const states={synced:['Sincronizado','Synced','Los datos están guardados en Google Drive.','Your data is saved in Google Drive.'],syncing:['Sincronizando…','Syncing…','Guardando los cambios en Google Drive.','Saving changes to Google Drive.'],loading:['Cargando…','Loading…','Cargando los datos de Google Drive.','Loading data from Google Drive.'],local:['Local','Local','Hay una copia en este dispositivo. No se ha confirmado el guardado en Drive.','There is a copy on this device. Saving to Drive has not been confirmed.'],pending:['Cambios pendientes','Changes pending','Quedan cambios sin confirmar en Google Drive.','Some changes have not been confirmed in Google Drive.'],error:['Error de sincronización','Sync error','No se pudo confirmar el guardado en Google Drive. La copia local se conserva.','Saving to Google Drive could not be confirmed. The local copy is preserved.'],offline:['Sin conexión','Offline','Sin conexión a Internet. La copia local se conserva.','There is no Internet connection. The local copy is preserved.']};
+ if(!states[state])state='local';const entry=states[state],en=language==='en';return {state,label:entry[en?1:0],message:entry[en?3:2]};
+}
+function updateSyncIndicators(){const view=syncView();for(const el of document.querySelectorAll('[data-sync-indicator]')){el.dataset.state=view.state;el.setAttribute('title',view.message);el.setAttribute('aria-label',view.label);el.querySelector('.sync-label').textContent=view.label;}}
 export const TODAY=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 export const kinds={books:'Libros',movies:'Películas',series:'Series',games:'Videojuegos'};
 export const muscles={chest:'Pecho',back:'Espalda',lowerBack:'Espalda baja',shoulders:'Hombro',abs:'Abdominales',cardio:'Cardio',legs:'Pierna',biceps:'Bíceps',triceps:'Tríceps'};
@@ -40,7 +45,7 @@ function hydrate(payload){
  S.seed=structuredClone(S.data);S.market=payload.market;S.rates=payload.rates||{EUR:1};S.capabilities=payload.capabilities||{};
  S.extras={favorites:[],progress:{},watchNotes:{},templates:[],...structuredClone(payload.data.dashboardExtras||{})};
  S.ui.weekGoal=S.extras.weekGoal||3;S.ui.language=S.data.preferences?.language||'es';S.ui.theme=S.data.preferences?.theme||'dark';
- S.sync=payload.sync;S.canEdit=payload.canEdit;S.profile={brand:payload.brand,user:payload.user};
+ S.syncInfo=payload.syncInfo;S.sync=payload.sync;S.canEdit=payload.canEdit;S.profile={brand:payload.brand,user:payload.user};
  translationState.preferences={language:S.ui.language,theme:S.ui.theme};
  confirmed=structuredClone(payload.data);document.documentElement.dataset.theme=S.ui.theme;
 }
@@ -86,11 +91,11 @@ export async function init(){
  const flush=()=>setTimeout(()=>{if(pendingState&&!committing&&!document.querySelector('dialog[open], input:focus, textarea:focus, select:focus')){const latest=pendingState;pendingState=null;window.dispatchEvent(new CustomEvent('dashboard-state',{detail:latest}));}},0);
  document.addEventListener('focusout',flush);document.addEventListener('dashboard-edit-closed',flush);
  window.addEventListener('dashboard-state',e=>{
-  pendingState=null;S.sync=e.detail.sync;S.canEdit=e.detail.canEdit;
+  pendingState=null;S.sync=e.detail.sync;S.syncInfo=e.detail.syncInfo;S.canEdit=e.detail.canEdit;updateSyncIndicators();
   if(committing||document.querySelector('dialog[open], input:focus, textarea:focus, select:focus')){pendingState=e.detail;return;}
   if(!same(confirmed,e.detail.data)||!same(S.market,e.detail.market)){
    hydrate(e.detail);document.dispatchEvent(new CustomEvent('lab-change',{detail:''}));
   }
-  for(const el of document.querySelectorAll('.preview-badge,.preview-status>span')){const text=[...el.childNodes].find(n=>n.nodeType===3);if(text)text.nodeValue=S.sync||'Conectado';}
+  updateSyncIndicators();
  });
 }

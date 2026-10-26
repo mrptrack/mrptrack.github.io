@@ -76,9 +76,9 @@ async function pageTests(){
   const spoof=page();spoof.tick();spoof.message(B,{});spoof.message('invalid');assert.equal(spoof.reloads,0);
 }
 async function saveTests(){
-  const ctx=vm.createContext({console,updateSyncStatus(){}});vm.runInContext(code(read('js/cloud.js')),ctx);
+  const ctx=vm.createContext({console,Event:class{constructor(type){this.type=type;}},document:{dispatchEvent(){}},updateSyncStatus(){}});vm.runInContext(code(read('js/cloud.js')),ctx);
   let resolve;ctx._saveToGAS=()=>new Promise(r=>resolve=r);
-  const first=ctx.pushDataToCloud();assert.equal(ctx.hasPendingCloudChanges(),true);resolve(false);await first;assert.equal(ctx.hasPendingCloudChanges(),true);
+  const first=ctx.pushDataToCloud();assert.equal(ctx.hasPendingCloudChanges(),true);assert.equal(ctx.getCloudStatus().saving,true);resolve(false);await first;assert.equal(ctx.hasPendingCloudChanges(),true);assert.equal(ctx.getCloudStatus().saving,false);assert.equal(ctx.getCloudStatus().pending,true);
   const second=ctx.pushDataToCloud();resolve(true);await second;assert.equal(ctx.hasPendingCloudChanges(),false);
   const pending=[];ctx._saveToGAS=()=>new Promise(r=>pending.push(r));
   const a=ctx.pushDataToCloud(),b=ctx.pushDataToCloud();pending[1](false);await b;pending[0](true);await a;

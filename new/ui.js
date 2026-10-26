@@ -1,4 +1,5 @@
-import {S,esc} from './core.js';
+import {S,esc,syncView} from './core.js';
+export function syncBadge(cls=''){const state=syncView();return `<button type="button" class="sync-indicator ${cls}" data-sync-indicator data-state="${state.state}" data-action="about" aria-label="${esc(state.label)}" title="${esc(state.message)}" data-no-i18n><i class="sync-light"></i><span class="sync-label">${esc(state.label)}</span></button>`;}
 import {icon} from './icons.js';
 export const btn=(label,action,attrs='',cls='')=>`<button type="button" class="btn ${cls}" data-action="${action}" ${attrs}>${label}</button>`;
 export function toast(message,undo=false){const host=document.getElementById('toasts'),node=document.createElement('div');node.className='toast';node.innerHTML=`${icon('check',17)}<span>${esc(message)}</span>${undo?'<button data-action="undo">Deshacer</button>':''}`;host.append(node);setTimeout(()=>node.remove(),5500);}

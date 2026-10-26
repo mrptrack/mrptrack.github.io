@@ -6,7 +6,7 @@ import {renderBenchmark} from './analytics.js';
 import {signOut} from './auth.js';
 import {D,_authed,_currentUser} from './state.js';
 import {buildDataObj,saveLocal,_migrateDivs} from './storage.js';
-import {_cloudReady,saveAndSync,hasPendingCloudChanges} from './cloud.js';
+import {_cloudReady,saveAndSync,hasPendingCloudChanges,getCloudStatus} from './cloud.js';
 import {getPriceData,valEur,fxR} from './portfolio.js';
 import {refreshWatchlist,getWatchlistSnapshot} from './watchlist.js';
 import {validateLife} from './life-schema.js';
@@ -25,7 +25,9 @@ function snapshot(){
  const history=[...(D.history||[])].sort((a,b)=>a.date.localeCompare(b.date));
  const complete=known===(D.holdings||[]).length,total=complete?Object.values(quotes).reduce((n,q)=>n+q.value,Number(D.cash)||0):history.at(-1)?.totalValue??null;
  const data=structuredClone(buildDataObj());data.history=history;
- return {data,capabilities:{brokers:brand==='Track CMG'},rates:Object.fromEntries(['EUR','USD','CAD','GBP','JPY'].map(c=>[c,c==='EUR'?1:fxR(c)])),market:{quotes,total,watchlist:getWatchlistSnapshot(),ready:complete,captured:dates.sort().at(-1)||history.at(-1)?.date||stamp()},brand,user:_currentUser?.name||brand,sync:document.getElementById('syncStatus')?.textContent||'',canEdit:_cloudReady&&!hasPendingCloudChanges()&&writes===0};
+ const cloud=getCloudStatus(),status=document.getElementById('syncStatus'),raw=status?.textContent||'',syncCode=status?.dataset?.syncState,offline=typeof navigator!=='undefined'&&navigator.onLine===false;
+ const syncInfo={state:offline?'offline':cloud.loading?'loading':cloud.saving||writes>0?'syncing':syncCode==='err'||/error/i.test(raw)?'error':/local/i.test(raw)?'local':cloud.pending?'pending':!cloud.ready?'local':syncCode==='ok'||/synced|sincr\./i.test(raw)?'synced':'local',syncedAt:status?.dataset?.syncedAt||null};
+ return {data,capabilities:{brokers:brand==='Track CMG'},rates:Object.fromEntries(['EUR','USD','CAD','GBP','JPY'].map(c=>[c,c==='EUR'?1:fxR(c)])),market:{quotes,total,watchlist:getWatchlistSnapshot(),ready:complete,captured:dates.sort().at(-1)||history.at(-1)?.date||stamp()},brand,user:_currentUser?.name||brand,syncInfo,sync:document.getElementById('syncStatus')?.textContent||'',canEdit:_cloudReady&&!hasPendingCloudChanges()&&writes===0};
 }
 function notify(){if(!frame||!_authed)return;try{frame.contentWindow.dispatchEvent(new CustomEvent('dashboard-state',{detail:snapshot()}));}catch{}}
 function updateVisibility(){
@@ -99,7 +101,8 @@ export function initLayout(){
 
   refreshWatchlist(options){if(_authed)return refreshWatchlist({force:options?.force===true});}
  });
- for(const event of ['data-loaded','portfolio-updated','preferences-changed','dashboard-data-updated','watchlist-prices-updated'])document.addEventListener(event,notify);
+ for(const event of ['data-loaded','portfolio-updated','preferences-changed','dashboard-data-updated','watchlist-prices-updated','sync-state-changed'])document.addEventListener(event,notify);
+ window.addEventListener?.('online',notify);window.addEventListener?.('offline',notify);
  const status=document.getElementById('syncStatus');if(status)new MutationObserver(notify).observe(status,{childList:true,characterData:true,subtree:true});
  updateVisibility();
 }

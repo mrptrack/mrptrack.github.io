@@ -26,6 +26,7 @@ function _payloadIsEmpty(j) {
 }
 
 export let _cloudReady = false;
+let cloudReading = false;
 
 async function _loadFromGAS() {
   if (!PROXY_URL) { console.warn('[GAS] PROXY_URL no configurada.'); updateSyncStatus('local'); return false; }
@@ -117,23 +118,26 @@ async function _saveToGAS() {
 }
 
 export async function fetchDataFromCloud() {
-  return await _loadFromGAS();
+  cloudReading=true; document.dispatchEvent(new Event('sync-state-changed'));
+  try { return await _loadFromGAS(); } finally { cloudReading=false; document.dispatchEvent(new Event('sync-state-changed')); }
 }
 
 let pendingCloudWrites = 0;
 let cloudWriteSequence = 0;
 let unconfirmedCloudChanges = false;
 // Used only by the app updater: never reload across an in-flight/failed save.
+export function getCloudStatus() { return {ready:_cloudReady,loading:cloudReading,saving:pendingCloudWrites>0,pending:unconfirmedCloudChanges}; }
 export function hasPendingCloudChanges() { return pendingCloudWrites > 0 || unconfirmedCloudChanges; }
 export async function pushDataToCloud() {
   const sequence = ++cloudWriteSequence;
   pendingCloudWrites++;
   unconfirmedCloudChanges = true;
+  document.dispatchEvent(new Event('sync-state-changed'));
   try {
     const ok = await _saveToGAS();
     if (ok && pendingCloudWrites === 1 && sequence === cloudWriteSequence) unconfirmedCloudChanges = false;
     return ok;
-  } finally { pendingCloudWrites--; }
+  } finally { pendingCloudWrites--; document.dispatchEvent(new Event('sync-state-changed')); }
 }
 
 // Guarda localmente y envia a la nube

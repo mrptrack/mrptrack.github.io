@@ -52,7 +52,7 @@ assert.equal(new Set(a.sectorColors(Array.from({length:20},(_,i)=>'Custom '+i)))
 // The corrected cloud load must persist once, after reading the whole JSON.
 (async()=>{
  const events=[];
- const c=vm.createContext({console,AbortController,setTimeout,clearTimeout,PROXY_URL:'https://example.invalid',getSessionToken:()=> 'test',
+ const c=vm.createContext({console,Event:class{},document:{dispatchEvent(){}},AbortController,setTimeout,clearTimeout,PROXY_URL:'https://example.invalid',getSessionToken:()=> 'test',
   fetch:async()=>({ok:true,text:async()=>JSON.stringify(payload)}),
   loadDataFromObj:()=>{events.push('load');return true;},saveLocal:()=>events.push('local'),updateSyncStatus(){},isFallbackState:()=>false});
  vm.runInContext(code('cloud.js'),c);

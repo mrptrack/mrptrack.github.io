@@ -25,3 +25,11 @@ Se guarda una copia previa antes de editar. La sesión de Nueva permite deshacer
 Comprar/vender en estas pantallas actualiza el registro del dashboard. Nunca envía órdenes a los brokers. Una venta lleva el ingreso a efectivo y el resultado a operaciones cerradas; no suma de nuevo los dividendos ya cobrados. Un traspaso entre brokers no aumenta la aportación global. Las correcciones de cantidades no registran compras ni ventas.
 
 Se conserva el comportamiento específico de TrackMRP: no se añade un panel de brokers a su navegación y se mantiene la corrección del registro del 22/09/2026 al importar.
+
+## Ajustes visuales y sincronización
+
+El objetivo admite de 250.000 a 100 millones de euros, hasta un 50 % de rentabilidad supuesta y hasta 5.000 euros al mes. El escenario se conserva mientras se usa la vista. Evolución empieza en Todo y usa una guía de un píxel.
+
+Las operaciones cerradas muestran una tabla compacta con desplazamiento horizontal y dos gráficos. La aritmética de capital, dividendos y resultado de Clásica y Nueva es la misma (`js/trade-model.js`). El listado de sesiones del gimnasio se sustituye por el acceso desde el calendario.
+
+El indicador de la cabecera representa la carga, el guardado en curso, el resultado confirmado, los cambios pendientes, la copia local y la ausencia de conexión. Las notificaciones de lectura/escritura actualizan el estado sin peticiones adicionales ni cambios en la política de guardado. Al tocarlo se muestra el detalle y, cuando existe, la hora de la última confirmación.

@@ -1,3 +1,4 @@
+import {calculateTrade} from './trade-model.js';
 import { locale } from './i18n.js';
 // ============================================================
 //  trades.js — Trades cerrados: cálculo y render
@@ -14,23 +15,7 @@ let CH = {};
 
 export function tradeFx(c) { return c === 'JPY' ? fxR(c) : (TRADE_FX[c] || 1); }
 
-export function calcTrade(t) {
-  const fx = tradeFx(t.currency);
-  const grossPL = t.totalShares * (t.sellPrice - t.avgBuy) * fx;
-  const divN = (t.dividends || 0) * fx;
-  const inv = t.totalShares * t.avgBuy * fx;
-  const net = grossPL + divN;
-  return {
-    grossPL, divN, inv, net,
-    pct: inv > 0 ? (net / inv) * 100 : 0,
-    ret: inv + net, fx,
-    cur: t.currency,
-    rawBuy: t.avgBuy,
-    rawSell: t.sellPrice,
-    rawInv: t.totalShares * t.avgBuy,
-    rawGross: t.totalShares * (t.sellPrice - t.avgBuy)
-  };
-}
+export function calcTrade(t) { return calculateTrade(t, tradeFx(t.currency)); }
 
 export function renderTrades() {
   let tI = 0, tG = 0, tDN = 0, tNet = 0;

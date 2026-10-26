@@ -133,7 +133,9 @@ export function saveLocal() {
 export function updateSyncStatus(state) {
   const el = document.getElementById('syncStatus');
   if (!el) return;
+  el.dataset.syncState=state;
   if (state === 'ok') {
+    el.dataset.syncedAt = new Date().toISOString();
     el.textContent = 'Synced';
     el.style.color = 'var(--green)';
     el.style.borderColor = 'rgba(34,223,138,.3)';
